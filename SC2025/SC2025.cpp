@@ -450,11 +450,112 @@ void RenderingOriginalTest_API()
 
 }
 
+
+void RenderingOriginalTest_API2()
+{
+    char inputFolder[] = "..\\Data\\Sample";
+    char outputFolder[] = "..\\Data\\RenderingResult2";
+    SJDim pMPIDim[] = { 1, 16, 540, 960, 32 };
+    SJDim pDim[] = { 1, 16, 540, 960 };
+    int outWidth = pDim[3];
+    int outHeight = pDim[2];
+
+    FILE* fp;
+    char filename[1024];
+    sprintf_s(filename, "mkdir %s", outputFolder);
+    system(filename);
+
+    int numView;
+    float* pViewArr;
+
+    sprintf_s(filename, "%s\\test_path_10.txt", inputFolder);
+    fopen_s(&fp, filename, "r");
+    fscanf_s(fp, "%d", &numView);
+    pViewArr = new float[16 * numView];
+
+    float temp;
+
+    for (int i = 0; i < numView; i++) {
+        for (int j = 0; j < 3; j++) {
+            for (int k = 0; k < 3; k++) {
+                fscanf_s(fp, "%f ", &pViewArr[k + j * 4 + i * 16]);
+            }
+        }
+        pViewArr[3 + i * 16] = pViewArr[7 + i * 16] = pViewArr[11 + i * 16] = 0;
+        fscanf_s(fp, "%f ", &pViewArr[12 + i * 16]);
+        fscanf_s(fp, "%f ", &pViewArr[13 + i * 16]);
+        fscanf_s(fp, "%f ", &pViewArr[14 + i * 16]);
+        pViewArr[15 + i * 16] = 1.0;
+
+        fscanf_s(fp, "%f ", &temp);
+        fscanf_s(fp, "%f ", &temp);
+        fscanf_s(fp, "%f ", &temp);
+
+
+    }
+    fclose(fp);
+
+    sprintf_s(filename, "%s\\mpis_360", inputFolder);
+
+    CPU_FLOAT* pC2WCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
+    CPU_FLOAT* pW2CCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
+    CPU_FLOAT* pCIFCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 3];
+    CUDA_FLOAT* pC2WCUDA;
+    CUDA_FLOAT* pW2CCUDA;
+    CUDA_FLOAT* pCIFCUDA;
+
+    cudaMalloc((void**)&pC2WCUDA, pDim[0] * pDim[1] * 16 * sizeof(CUDA_FLOAT));
+    cudaMalloc((void**)&pW2CCUDA, pDim[0] * pDim[1] * 16 * sizeof(CUDA_FLOAT));
+    cudaMalloc((void**)&pCIFCUDA, pDim[0] * pDim[1] * 3 * sizeof(CUDA_FLOAT));
+
+    //LoadMetaDataFromFolder(filename, pC2WCPU, pCIFCPU, pMPIDim);
+    SJCUDARenderer_LoadDataFromFolder(filename, pMPIDim, pC2WCPU, pC2WCUDA, pW2CCPU, pW2CCUDA, pCIFCPU, pCIFCUDA);
+
+    
+    CUDA_UCHAR* pMPICUDA;
+    cudaMalloc((void**)&pMPICUDA, pMPIDim[0] * pMPIDim[1] * pMPIDim[2] * pMPIDim[3] * pMPIDim[4] * 4 * sizeof(CUDA_UCHAR));
+    SJCUDARenderer_LoadMPIFromFolder(filename, pMPIDim, pMPICUDA);
+    CUDA_UCHAR* pImageCUDA;
+    CPU_UCHAR* pImage;
+
+    cudaMalloc((void**)&pImageCUDA, outWidth * outHeight * 3 * sizeof(unsigned char));
+    pImage = new CPU_UCHAR[outWidth * outHeight * 3];
+
+
+    SJCUDARenderer* renderer = SJCUDARenderer_New();
+    SJCUDARenderer_Initialize(renderer, pDim, pMPIDim, pC2WCPU, pC2WCUDA, pW2CCPU, pW2CCUDA, pCIFCPU, pCIFCUDA);
+    SJCUDARenderer_InitializeRendering(renderer, pDim[3], pDim[2], 5);
+    SJCUDARenderer_LoadMPI(renderer, NULL, pMPICUDA);
+
+    Mat img(outHeight, outWidth, CV_8UC3, pImage);
+    for (int i = 0; i < numView; i++) {
+        SJCUDARenderer_Rendering(renderer, &pViewArr[i * 16], pImageCUDA, pImage);
+        sprintf_s(filename, "%s\\%03d.png", outputFolder, i);
+        imwrite(filename, img);
+    }
+    SJCUDARenderer_Finalize(renderer);
+
+    delete[]pC2WCPU;
+    delete[]pW2CCPU;
+    delete[]pCIFCPU;
+    delete[]pViewArr;
+
+    delete[]pImage;
+    cudaFree(pC2WCUDA);
+    cudaFree(pW2CCUDA);
+    cudaFree(pCIFCUDA);
+    cudaFree(pMPICUDA);
+    cudaFree(pImageCUDA);
+
+}
+
 int main()
 {
     //RenderingCompressedTest();
     //RenderingOriginalTest();
-    RenderingOriginalTest_API();
+    //RenderingOriginalTest_API();
+    RenderingOriginalTest_API2();
+
 }
 
 // 프로그램 실행: <Ctrl+F5> 또는 [디버그] > [디버깅하지 않고 시작] 메뉴
