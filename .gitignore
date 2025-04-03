@@ -1,0 +1,8 @@
+.venv
+.vs
+3rdparty
+bin
+Data
+x64
+*.filters
+*.user
