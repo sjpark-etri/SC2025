@@ -46,7 +46,41 @@ def load_colmap_data(realdir):
     poses = np.concatenate([poses[:, 1:2, :], poses[:, 0:1, :], -poses[:, 2:3, :], poses[:, 3:4, :], poses[:, 4:5, :]], 1)
     
     return poses, pts3d, perm, w2c_mats, c2w_mats, hwf
-      
+
+def save_poses(basedir, poses, pts3d, perm):
+    pts_arr = []
+    vis_arr = []
+    print(poses.shape[-1])
+    for k in pts3d:
+        pts_arr.append(pts3d[k].xyz)
+        cams = [0] * poses.shape[-1]
+        for ind in pts3d[k].image_ids:
+          cams[ind-1] = 1
+        vis_arr.append(cams)
+
+    pts_arr = np.array(pts_arr)
+    vis_arr = np.array(vis_arr)
+    print( 'Points', pts_arr.shape, 'Visibility', vis_arr.shape )
+    
+    zvals = np.sum(-(pts_arr[:, np.newaxis, :].transpose([2,0,1]) - poses[:3, 3:4, :]) * poses[:3, 2:3, :], 0)
+    valid_z = zvals[vis_arr==1]
+    print( 'Depth stats', valid_z.min(), valid_z.max(), valid_z.mean() )
+    
+    save_arr = []
+    print(perm.shape)
+    for i in perm:
+        vis = vis_arr[:, i]
+        zs = zvals[:, i]
+        zs = zs[vis==1]
+        close_depth, inf_depth = np.percentile(zs, .1), np.percentile(zs, 99.9)
+        # print( i, close_depth, inf_depth )
+        
+        save_arr.append(np.concatenate([poses[..., i].ravel(), np.array([close_depth, inf_depth])], 0))
+    save_arr = np.array(save_arr)
+    
+    np.save(os.path.join(basedir, 'poses_bounds.npy'), save_arr)
+    np.savetxt(os.path.join(basedir, 'poses_bounds.txt'), save_arr)    
+
 def computecloseInfinity(poses, pts3d, perm):
     pts_arr = []
     vis_arr = []
@@ -92,7 +126,7 @@ def load_mpi(basedir):
     pose = np.concatenate([-pose[:,1:2], pose[:,0:1], pose[:,2:]], 1)
     idepth, cdepth = [float(x) for x in lines[5].split(' ')[:2]]
     
-    return data
+    return data, idepth, cdepth, pose
 
 
 def normalize(x):
@@ -135,6 +169,42 @@ def generate_render_path_param(poses, bds, view_range, focal, comps=None, N=30):
         comps = [True]*5
     
     close_depth, inf_depth = bds[0, :].min()*.9, bds[1, :].max()*5.
+    dt = .90
+    mean_dz = 1./(((1.-dt)/close_depth + dt/inf_depth))
+    #focal = mean_dz
+    
+    #focal = 30 
+    
+    shrink_factor = .8
+    zdelta = close_depth * .2
+    
+    c2w = poses_avg(poses)
+    
+    #c2w = poses[:,:,0]
+    up = normalize(poses[:3, 0, :].sum(-1))
+    
+    tt = ptstocam(poses[:3,3,:].T, c2w).T
+    rads = np.percentile(np.abs(tt), 90, -1)
+    render_poses = []
+    print("Focal : ", focal)
+    if comps[0]:
+        render_poses += render_path_axis_param(c2w, up, 1, shrink_factor*rads[1], focal, view_range, N)
+    if comps[1]:
+        render_poses += render_path_axis_param(c2w, up, 0, shrink_factor*rads[0], focal, view_range, N)
+    if comps[2]:
+        render_poses += render_path_axis_param(c2w, up, 2, shrink_factor*zdelta, focal, view_range, N)
+    
+    rads[2] = zdelta
+    
+    render_poses = np.array(render_poses)
+    
+    return render_poses
+
+
+def generate_render_path_param1(poses, close_depth, inf_depth, view_range, focal, comps=None, N=30):
+    if comps is None:
+        comps = [True]*5
+    
     dt = .90
     mean_dz = 1./(((1.-dt)/close_depth + dt/inf_depth))
     #focal = mean_dz

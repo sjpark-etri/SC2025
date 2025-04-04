@@ -6,3 +6,4 @@ Data
 x64
 *.filters
 *.user
+__pycache__

@@ -135,3 +135,37 @@ void SJCUDARenderer_CPU_FLOAT_Free(float* buffer)
 {
     delete[]buffer;
 }
+float* SJCUDARenderer_GetRenderPath(char* filename)
+{
+    FILE* fp;
+    int numView;
+    float* pViewArr;
+
+    
+    fopen_s(&fp, filename, "r");
+    fscanf_s(fp, "%d", &numView);
+    pViewArr = new float[16 * numView];
+    float temp;
+
+    for (int i = 0; i < numView; i++) {
+        for (int j = 0; j < 3; j++) {
+            for (int k = 0; k < 3; k++) {
+                fscanf_s(fp, "%f ", &pViewArr[k + j * 4 + i * 16]);
+            }
+        }
+        pViewArr[3 + i * 16] = pViewArr[7 + i * 16] = pViewArr[11 + i * 16] = 0;
+        fscanf_s(fp, "%f ", &pViewArr[12 + i * 16]);
+        fscanf_s(fp, "%f ", &pViewArr[13 + i * 16]);
+        fscanf_s(fp, "%f ", &pViewArr[14 + i * 16]);
+        pViewArr[15 + i * 16] = 1.0;
+
+        fscanf_s(fp, "%f ", &temp);
+        fscanf_s(fp, "%f ", &temp);
+        fscanf_s(fp, "%f ", &temp);
+
+
+    }
+    fclose(fp);
+
+    return pViewArr;
+}

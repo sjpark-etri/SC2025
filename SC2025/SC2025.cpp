@@ -460,41 +460,21 @@ void RenderingOriginalTest_API2()
     int outWidth = pDim[3];
     int outHeight = pDim[2];
 
-    FILE* fp;
+    
     char filename[1024];
     sprintf_s(filename, "mkdir %s", outputFolder);
     system(filename);
 
-    int numView;
-    float* pViewArr;
-
     sprintf_s(filename, "%s\\test_path_10.txt", inputFolder);
-    fopen_s(&fp, filename, "r");
-    fscanf_s(fp, "%d", &numView);
-    pViewArr = new float[16 * numView];
 
-    float temp;
-
+    float *pViewArr = SJCUDARenderer_GetRenderPath(filename);
+    int numView = 45;
     for (int i = 0; i < numView; i++) {
-        for (int j = 0; j < 3; j++) {
-            for (int k = 0; k < 3; k++) {
-                fscanf_s(fp, "%f ", &pViewArr[k + j * 4 + i * 16]);
-            }
+        for (int j = 0; j < 16; j++) {
+            printf("%f ", pViewArr[j + i * 16]);
         }
-        pViewArr[3 + i * 16] = pViewArr[7 + i * 16] = pViewArr[11 + i * 16] = 0;
-        fscanf_s(fp, "%f ", &pViewArr[12 + i * 16]);
-        fscanf_s(fp, "%f ", &pViewArr[13 + i * 16]);
-        fscanf_s(fp, "%f ", &pViewArr[14 + i * 16]);
-        pViewArr[15 + i * 16] = 1.0;
-
-        fscanf_s(fp, "%f ", &temp);
-        fscanf_s(fp, "%f ", &temp);
-        fscanf_s(fp, "%f ", &temp);
-
-
+        printf("\n");
     }
-    fclose(fp);
-
     sprintf_s(filename, "%s\\mpis_360", inputFolder);
 
     CPU_FLOAT* pC2WCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];

@@ -26,4 +26,5 @@ extern "C" {
 	SC_API void SJCUDARenderer_CPU_UCHAR_Free(unsigned char* buffer);
 	SC_API void SJCUDARenderer_CUDA_FLOAT_Free(float* buffer);
 	SC_API void SJCUDARenderer_CPU_FLOAT_Free(float* buffer);
+	SC_API float* SJCUDARenderer_GetRenderPath(char* filename);
 }
