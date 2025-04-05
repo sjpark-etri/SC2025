@@ -19,7 +19,7 @@ int LoadMetaDataFromFolder(char* folderName, CPU_FLOAT* pC2W, CPU_FLOAT* pCIF, S
     int width, height, level;
     float focal;
     for (size_t i = 0; i < pMPIDim[0] * pMPIDim[1]; i++) {
-        sprintf(filename, "%s\\mpi%02d\\metadata.txt", folderName, i);
+        sprintf(filename, "%s/mpi%02d/metadata.txt", folderName, i);
         fp = fopen(filename, "r");
         fscanf(fp, "%d %d %d %f\n", &width, &height, &level, &pCIF[2 + i * 3]);
         for (int j = 0; j < 16; j++) {
@@ -42,7 +42,7 @@ void LoadMPIFromFolder(const char* folderName, unsigned char* pMPI, SJDim* pMPID
     unsigned char* temp = new unsigned char[pMPIDim[2] * pMPIDim[3] * pMPIDim[4] * 4];
 
     for (SJDim i = 0; i < pMPIDim[0] * pMPIDim[1]; i++) {
-        sprintf(command, "%s\\mpi%02d\\mpi.b", folderName, i);
+        sprintf(command, "%s/mpi%02d/mpi.b", folderName, i);
         fp = fopen(command, "rb");
         fread(temp, 1, pMPIDim[2] * pMPIDim[3] * pMPIDim[4] * 4 * sizeof(unsigned char), fp);
         fclose(fp);
@@ -53,8 +53,8 @@ void LoadMPIFromFolder(const char* folderName, unsigned char* pMPI, SJDim* pMPID
 }
 void RenderingCompressedTest()
 {
-    char inputFolder[] = "..\\Data\\Sample";
-    char outputFolder[] = "..\\Data\\RenderingResult";
+    char inputFolder[] = "../Data/Sample";
+    char outputFolder[] = "../Data/RenderingResult";
     SJDim pMPIDim[] = { 1, 16, 540, 960, 32 };
     SJDim pDim[] = { 1, 16, 540, 960 };
     int outWidth = pDim[3];
@@ -72,7 +72,7 @@ void RenderingCompressedTest()
     int numView;
     float* pViewArr;
 
-    sprintf(filename, "%s\\test_path_10.txt", inputFolder);
+    sprintf(filename, "%s/test_path_10.txt", inputFolder);
     fp = fopen(filename, "r");
     fscanf(fp, "%d", &numView);
     pViewArr = new float[16 * numView];
@@ -99,7 +99,7 @@ void RenderingCompressedTest()
     }
     fclose(fp);
 
-    sprintf(filename, "%s\\mpis_360", inputFolder);
+    sprintf(filename, "%s/mpis_360", inputFolder);
 
     CPU_FLOAT* pC2WCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
     CPU_FLOAT* pW2CCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
@@ -156,13 +156,13 @@ void RenderingCompressedTest()
     packingLayer = new CUDA_UCHAR * [numLayer];
     Mat packing;
     for (int i = 0; i < numImage; i++) {
-        sprintf(filename, "%s\\Image_%d.png", inputFolder, i);
+        sprintf(filename, "%s/Image_%d.png", inputFolder, i);
         cudaMalloc((void**)&packingImage[i], packingWidth * packingHeight * 3 * sizeof(unsigned char));
         packing = imread(filename);
         cudaMemcpy(packingImage[i], packing.data, packingWidth * packingHeight * 3 * sizeof(unsigned char), cudaMemcpyHostToDevice);
     }
     for (int i = 0; i < numLayer; i++) {
-        sprintf(filename, "%s\\Layer_%d.png", inputFolder, i);
+        sprintf(filename, "%s/Layer_%d.png", inputFolder, i);
         cudaMalloc((void**)&packingLayer[i], packingWidth * packingHeight * 3 * sizeof(unsigned char));
         packing = imread(filename);
         cudaMemcpy(packingLayer[i], packing.data, packingWidth * packingHeight * 3 * sizeof(unsigned char), cudaMemcpyHostToDevice);
@@ -180,7 +180,7 @@ void RenderingCompressedTest()
     Mat img(outHeight, outWidth, CV_8UC3, pImage);
     for (int i = 0; i < numView; i++) {
         renderer.Rendering(&pViewArr[i * 16], pImageCUDA, pImage);
-        sprintf(filename, "%s\\%03d.png", outputFolder, i);
+        sprintf(filename, "%s/%03d.png", outputFolder, i);
         imwrite(filename, img);
     }
     renderer.Finalize();
@@ -209,8 +209,8 @@ void RenderingCompressedTest()
 }
 void RenderingOriginalTest()
 {
-    char inputFolder[] = "..\\Data\\Sample";
-    char outputFolder[] = "..\\Data\\RenderingResult1";
+    char inputFolder[] = "../Data/Sample";
+    char outputFolder[] = "../Data/RenderingResult1";
     SJDim pMPIDim[] = { 1, 16, 540, 960, 32 };
     SJDim pDim[] = { 1, 16, 540, 960 };
     int outWidth = pDim[3];
@@ -224,7 +224,7 @@ void RenderingOriginalTest()
     int numView;
     float* pViewArr;
 
-    sprintf(filename, "%s\\test_path_10.txt", inputFolder);
+    sprintf(filename, "%s/test_path_10.txt", inputFolder);
     fp = fopen(filename, "r");
     fscanf(fp, "%d", &numView);
     pViewArr = new float[16 * numView];
@@ -251,7 +251,7 @@ void RenderingOriginalTest()
     }
     fclose(fp);
 
-    sprintf(filename, "%s\\mpis_360", inputFolder);
+    sprintf(filename, "%s/mpis_360", inputFolder);
 
     CPU_FLOAT* pC2WCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
     CPU_FLOAT* pW2CCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
@@ -310,7 +310,7 @@ void RenderingOriginalTest()
     Mat img(outHeight, outWidth, CV_8UC3, pImage);
     for (int i = 0; i < numView; i++) {
         renderer.Rendering(&pViewArr[i * 16], pImageCUDA, pImage);
-        sprintf(filename, "%s\\%03d.png", outputFolder, i);
+        sprintf(filename, "%s/%03d.png", outputFolder, i);
         imwrite(filename, img);
     }
     renderer.Finalize();
@@ -331,8 +331,8 @@ void RenderingOriginalTest()
 
 void RenderingOriginalTest_API()
 {
-    char inputFolder[] = "..\\Data\\Sample";
-    char outputFolder[] = "..\\Data\\RenderingResult2";
+    char inputFolder[] = "../Data/Sample";
+    char outputFolder[] = "../Data/RenderingResult2";
     SJDim pMPIDim[] = { 1, 16, 540, 960, 32 };
     SJDim pDim[] = { 1, 16, 540, 960 };
     int outWidth = pDim[3];
@@ -346,7 +346,7 @@ void RenderingOriginalTest_API()
     int numView;
     float* pViewArr;
 
-    sprintf(filename, "%s\\test_path_10.txt", inputFolder);
+    sprintf(filename, "%s/test_path_10.txt", inputFolder);
     fp = fopen(filename, "r");
     fscanf(fp, "%d", &numView);
     pViewArr = new float[16 * numView];
@@ -373,7 +373,7 @@ void RenderingOriginalTest_API()
     }
     fclose(fp);
 
-    sprintf(filename, "%s\\mpis_360", inputFolder);
+    sprintf(filename, "%s/mpis_360", inputFolder);
 
     CPU_FLOAT* pC2WCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
     CPU_FLOAT* pW2CCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
@@ -432,7 +432,7 @@ void RenderingOriginalTest_API()
     Mat img(outHeight, outWidth, CV_8UC3, pImage);
     for (int i = 0; i < numView; i++) {
         SJCUDARenderer_Rendering(renderer, &pViewArr[i * 16], pImageCUDA, pImage);
-        sprintf(filename, "%s\\%03d.png", outputFolder, i);
+        sprintf(filename, "%/\%03d.png", outputFolder, i);
         imwrite(filename, img);
     }
     SJCUDARenderer_Finalize(renderer);
@@ -454,8 +454,8 @@ void RenderingOriginalTest_API()
 
 void RenderingOriginalTest_API2()
 {
-    char inputFolder[] = "..\\Data\\Sample";
-    char outputFolder[] = "..\\Data\\RenderingResult2";
+    char inputFolder[] = "../Data/Sample";
+    char outputFolder[] = "../Data/RenderingResult2";
     SJDim pMPIDim[] = { 1, 16, 540, 960, 32 };
     SJDim pDim[] = { 1, 16, 540, 960 };
     int outWidth = pDim[3];
@@ -466,7 +466,7 @@ void RenderingOriginalTest_API2()
     sprintf(filename, "mkdir %s", outputFolder);
     system(filename);
 
-    sprintf(filename, "%s\\test_path_10.txt", inputFolder);
+    sprintf(filename, "%s/test_path_10.txt", inputFolder);
 
     float* pViewArr = SJCUDARenderer_GetRenderPath(filename);
     int numView = 45;
@@ -476,7 +476,7 @@ void RenderingOriginalTest_API2()
         }
         printf("\n");
     }
-    sprintf(filename, "%s\\mpis_360", inputFolder);
+    sprintf(filename, "%s/mpis_360", inputFolder);
 
     CPU_FLOAT* pC2WCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
     CPU_FLOAT* pW2CCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
@@ -511,7 +511,7 @@ void RenderingOriginalTest_API2()
     Mat img(outHeight, outWidth, CV_8UC3, pImage);
     for (int i = 0; i < numView; i++) {
         SJCUDARenderer_Rendering(renderer, &pViewArr[i * 16], pImageCUDA, pImage);
-        sprintf(filename, "%s\\%03d.png", outputFolder, i);
+        sprintf(filename, "%s/%03d.png", outputFolder, i);
         imwrite(filename, img);
     }
     SJCUDARenderer_Finalize(renderer);

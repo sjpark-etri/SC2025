@@ -49,7 +49,7 @@ void SJLog::PrintLOG(const LOG_LEVEL level, const char* file, const char* func, 
 		//char* token1 = strtok_s(token, ".", &context);
 		//prefix = _strrev(context);
 
-		char* token = strtok(prefix, "\\");
+		char* token = strtok(prefix, "/");
 		char* token1 = strtok(token, ".");
 		prefix = strrev1(strtok(NULL, "."));
 
