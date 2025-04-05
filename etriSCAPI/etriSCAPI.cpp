@@ -39,7 +39,7 @@ int SJCUDARenderer_LoadMPIFromFolder(char* foldername, size_t* pMPIDim, unsigned
     unsigned char* temp = new unsigned char[pMPIDim[2] * pMPIDim[3] * pMPIDim[4] * 4];
 
     for (SJDim i = 0; i < pMPIDim[0] * pMPIDim[1]; i++) {
-        sprintf(command, "%s\\mpi%02d\\mpi.b", foldername, i);
+        sprintf(command, "%s/mpi%02d/mpi.b", foldername, i);
         fp = fopen(command, "rb");
         fread(temp, 1, pMPIDim[2] * pMPIDim[3] * pMPIDim[4] * 4 * sizeof(unsigned char), fp);
         fclose(fp);
@@ -56,7 +56,7 @@ int SJCUDARenderer_LoadDataFromFolder(char* foldername, size_t* pMPIDim, float* 
     int width, height, level;
     float focal;
     for (size_t i = 0; i < pMPIDim[0] * pMPIDim[1]; i++) {
-        sprintf(filename, "%s\\mpi%02d\\metadata.txt", foldername, i);
+        sprintf(filename, "%s/mpi%02d/metadata.txt", foldername, i);
         fp = fopen(filename, "r");
         fscanf(fp, "%d %d %d %f\n", &width, &height, &level, &pCIF[2 + i * 3]);
         for (int j = 0; j < 16; j++) {
