@@ -432,7 +432,7 @@ void RenderingOriginalTest_API()
     Mat img(outHeight, outWidth, CV_8UC3, pImage);
     for (int i = 0; i < numView; i++) {
         SJCUDARenderer_Rendering(renderer, &pViewArr[i * 16], pImageCUDA, pImage);
-        sprintf(filename, "%/\%03d.png", outputFolder, i);
+        sprintf(filename, "%s/%03d.png", outputFolder, i);
         imwrite(filename, img);
     }
     SJCUDARenderer_Finalize(renderer);
