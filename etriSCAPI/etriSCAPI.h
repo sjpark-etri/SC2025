@@ -1,5 +1,5 @@
 #pragma once
-
+#include <cstddef>
 class SJCUDARenderer;
 extern "C" {
 	SJCUDARenderer* SJCUDARenderer_New();	
