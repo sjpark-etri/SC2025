@@ -9,6 +9,7 @@
 
 #include "cuda_runtime.h"
 #include "opencv2/opencv.hpp"
+#include "SJLog.h"
 using namespace cv;
 
 int LoadMetaDataFromFolder(char* folderName, CPU_FLOAT* pC2W, CPU_FLOAT* pCIF, SJDim* pMPIDim)
@@ -18,16 +19,16 @@ int LoadMetaDataFromFolder(char* folderName, CPU_FLOAT* pC2W, CPU_FLOAT* pCIF, S
     int width, height, level;
     float focal;
     for (size_t i = 0; i < pMPIDim[0] * pMPIDim[1]; i++) {
-        sprintf_s(filename, "%s\\mpi%02d\\metadata.txt", folderName, i);
-        fopen_s(&fp, filename, "r");
-        fscanf_s(fp, "%d %d %d %f\n", &width, &height, &level, &pCIF[2 + i * 3]);
+        sprintf(filename, "%s\\mpi%02d\\metadata.txt", folderName, i);
+        fp = fopen(filename, "r");
+        fscanf(fp, "%d %d %d %f\n", &width, &height, &level, &pCIF[2 + i * 3]);
         for (int j = 0; j < 16; j++) {
             if (j % 4 != 3)
-                fscanf_s(fp, "%f ", &pC2W[j + i * 16]);
+                fscanf(fp, "%f ", &pC2W[j + i * 16]);
             else
                 pC2W[j + i * 16] = j < 15 ? 0. : 1.;
         }
-        fscanf_s(fp, "%f %f", &pCIF[1 + i * 3], &pCIF[i * 3]);
+        fscanf(fp, "%f %f", &pCIF[1 + i * 3], &pCIF[i * 3]);
         //pCIF[2 + i * 3] = pCIF[2 + i * 3] * 4;
         fclose(fp);
 
@@ -41,8 +42,8 @@ void LoadMPIFromFolder(const char* folderName, unsigned char* pMPI, SJDim* pMPID
     unsigned char* temp = new unsigned char[pMPIDim[2] * pMPIDim[3] * pMPIDim[4] * 4];
 
     for (SJDim i = 0; i < pMPIDim[0] * pMPIDim[1]; i++) {
-        sprintf_s(command, "%s\\mpi%02d\\mpi.b", folderName, i);
-        fopen_s(&fp, command, "rb");
+        sprintf(command, "%s\\mpi%02d\\mpi.b", folderName, i);
+        fp = fopen(command, "rb");
         fread(temp, 1, pMPIDim[2] * pMPIDim[3] * pMPIDim[4] * 4 * sizeof(unsigned char), fp);
         fclose(fp);
 
@@ -65,15 +66,15 @@ void RenderingCompressedTest()
 
     FILE* fp;
     char filename[1024];
-    sprintf_s(filename, "mkdir %s", outputFolder);
+    sprintf(filename, "mkdir %s", outputFolder);
     system(filename);
 
     int numView;
     float* pViewArr;
 
-    sprintf_s(filename, "%s\\test_path_10.txt", inputFolder);
-    fopen_s(&fp, filename, "r");
-    fscanf_s(fp, "%d", &numView);
+    sprintf(filename, "%s\\test_path_10.txt", inputFolder);
+    fp = fopen(filename, "r");
+    fscanf(fp, "%d", &numView);
     pViewArr = new float[16 * numView];
 
     float temp;
@@ -81,24 +82,24 @@ void RenderingCompressedTest()
     for (int i = 0; i < numView; i++) {
         for (int j = 0; j < 3; j++) {
             for (int k = 0; k < 3; k++) {
-                fscanf_s(fp, "%f ", &pViewArr[k + j * 4 + i * 16]);
+                fscanf(fp, "%f ", &pViewArr[k + j * 4 + i * 16]);
             }
         }
         pViewArr[3 + i * 16] = pViewArr[7 + i * 16] = pViewArr[11 + i * 16] = 0;
-        fscanf_s(fp, "%f ", &pViewArr[12 + i * 16]);
-        fscanf_s(fp, "%f ", &pViewArr[13 + i * 16]);
-        fscanf_s(fp, "%f ", &pViewArr[14 + i * 16]);
+        fscanf(fp, "%f ", &pViewArr[12 + i * 16]);
+        fscanf(fp, "%f ", &pViewArr[13 + i * 16]);
+        fscanf(fp, "%f ", &pViewArr[14 + i * 16]);
         pViewArr[15 + i * 16] = 1.0;
 
-        fscanf_s(fp, "%f ", &temp);
-        fscanf_s(fp, "%f ", &temp);
-        fscanf_s(fp, "%f ", &temp);
+        fscanf(fp, "%f ", &temp);
+        fscanf(fp, "%f ", &temp);
+        fscanf(fp, "%f ", &temp);
 
 
     }
     fclose(fp);
 
-    sprintf_s(filename, "%s\\mpis_360", inputFolder);
+    sprintf(filename, "%s\\mpis_360", inputFolder);
 
     CPU_FLOAT* pC2WCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
     CPU_FLOAT* pW2CCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
@@ -155,13 +156,13 @@ void RenderingCompressedTest()
     packingLayer = new CUDA_UCHAR * [numLayer];
     Mat packing;
     for (int i = 0; i < numImage; i++) {
-        sprintf_s(filename, "%s\\Image_%d.png", inputFolder, i);
+        sprintf(filename, "%s\\Image_%d.png", inputFolder, i);
         cudaMalloc((void**)&packingImage[i], packingWidth * packingHeight * 3 * sizeof(unsigned char));
         packing = imread(filename);
         cudaMemcpy(packingImage[i], packing.data, packingWidth * packingHeight * 3 * sizeof(unsigned char), cudaMemcpyHostToDevice);
     }
     for (int i = 0; i < numLayer; i++) {
-        sprintf_s(filename, "%s\\Layer_%d.png", inputFolder, i);
+        sprintf(filename, "%s\\Layer_%d.png", inputFolder, i);
         cudaMalloc((void**)&packingLayer[i], packingWidth * packingHeight * 3 * sizeof(unsigned char));
         packing = imread(filename);
         cudaMemcpy(packingLayer[i], packing.data, packingWidth * packingHeight * 3 * sizeof(unsigned char), cudaMemcpyHostToDevice);
@@ -179,7 +180,7 @@ void RenderingCompressedTest()
     Mat img(outHeight, outWidth, CV_8UC3, pImage);
     for (int i = 0; i < numView; i++) {
         renderer.Rendering(&pViewArr[i * 16], pImageCUDA, pImage);
-        sprintf_s(filename, "%s\\%03d.png", outputFolder, i);
+        sprintf(filename, "%s\\%03d.png", outputFolder, i);
         imwrite(filename, img);
     }
     renderer.Finalize();
@@ -217,15 +218,15 @@ void RenderingOriginalTest()
 
     FILE* fp;
     char filename[1024];
-    sprintf_s(filename, "mkdir %s", outputFolder);
+    sprintf(filename, "mkdir %s", outputFolder);
     system(filename);
 
     int numView;
     float* pViewArr;
 
-    sprintf_s(filename, "%s\\test_path_10.txt", inputFolder);
-    fopen_s(&fp, filename, "r");
-    fscanf_s(fp, "%d", &numView);
+    sprintf(filename, "%s\\test_path_10.txt", inputFolder);
+    fp = fopen(filename, "r");
+    fscanf(fp, "%d", &numView);
     pViewArr = new float[16 * numView];
 
     float temp;
@@ -233,24 +234,24 @@ void RenderingOriginalTest()
     for (int i = 0; i < numView; i++) {
         for (int j = 0; j < 3; j++) {
             for (int k = 0; k < 3; k++) {
-                fscanf_s(fp, "%f ", &pViewArr[k + j * 4 + i * 16]);
+                fscanf(fp, "%f ", &pViewArr[k + j * 4 + i * 16]);
             }
         }
         pViewArr[3 + i * 16] = pViewArr[7 + i * 16] = pViewArr[11 + i * 16] = 0;
-        fscanf_s(fp, "%f ", &pViewArr[12 + i * 16]);
-        fscanf_s(fp, "%f ", &pViewArr[13 + i * 16]);
-        fscanf_s(fp, "%f ", &pViewArr[14 + i * 16]);
+        fscanf(fp, "%f ", &pViewArr[12 + i * 16]);
+        fscanf(fp, "%f ", &pViewArr[13 + i * 16]);
+        fscanf(fp, "%f ", &pViewArr[14 + i * 16]);
         pViewArr[15 + i * 16] = 1.0;
 
-        fscanf_s(fp, "%f ", &temp);
-        fscanf_s(fp, "%f ", &temp);
-        fscanf_s(fp, "%f ", &temp);
+        fscanf(fp, "%f ", &temp);
+        fscanf(fp, "%f ", &temp);
+        fscanf(fp, "%f ", &temp);
 
 
     }
     fclose(fp);
 
-    sprintf_s(filename, "%s\\mpis_360", inputFolder);
+    sprintf(filename, "%s\\mpis_360", inputFolder);
 
     CPU_FLOAT* pC2WCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
     CPU_FLOAT* pW2CCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
@@ -309,7 +310,7 @@ void RenderingOriginalTest()
     Mat img(outHeight, outWidth, CV_8UC3, pImage);
     for (int i = 0; i < numView; i++) {
         renderer.Rendering(&pViewArr[i * 16], pImageCUDA, pImage);
-        sprintf_s(filename, "%s\\%03d.png", outputFolder, i);
+        sprintf(filename, "%s\\%03d.png", outputFolder, i);
         imwrite(filename, img);
     }
     renderer.Finalize();
@@ -339,15 +340,15 @@ void RenderingOriginalTest_API()
 
     FILE* fp;
     char filename[1024];
-    sprintf_s(filename, "mkdir %s", outputFolder);
+    sprintf(filename, "mkdir %s", outputFolder);
     system(filename);
 
     int numView;
     float* pViewArr;
 
-    sprintf_s(filename, "%s\\test_path_10.txt", inputFolder);
-    fopen_s(&fp, filename, "r");
-    fscanf_s(fp, "%d", &numView);
+    sprintf(filename, "%s\\test_path_10.txt", inputFolder);
+    fp = fopen(filename, "r");
+    fscanf(fp, "%d", &numView);
     pViewArr = new float[16 * numView];
 
     float temp;
@@ -355,24 +356,24 @@ void RenderingOriginalTest_API()
     for (int i = 0; i < numView; i++) {
         for (int j = 0; j < 3; j++) {
             for (int k = 0; k < 3; k++) {
-                fscanf_s(fp, "%f ", &pViewArr[k + j * 4 + i * 16]);
+                fscanf(fp, "%f ", &pViewArr[k + j * 4 + i * 16]);
             }
         }
         pViewArr[3 + i * 16] = pViewArr[7 + i * 16] = pViewArr[11 + i * 16] = 0;
-        fscanf_s(fp, "%f ", &pViewArr[12 + i * 16]);
-        fscanf_s(fp, "%f ", &pViewArr[13 + i * 16]);
-        fscanf_s(fp, "%f ", &pViewArr[14 + i * 16]);
+        fscanf(fp, "%f ", &pViewArr[12 + i * 16]);
+        fscanf(fp, "%f ", &pViewArr[13 + i * 16]);
+        fscanf(fp, "%f ", &pViewArr[14 + i * 16]);
         pViewArr[15 + i * 16] = 1.0;
 
-        fscanf_s(fp, "%f ", &temp);
-        fscanf_s(fp, "%f ", &temp);
-        fscanf_s(fp, "%f ", &temp);
+        fscanf(fp, "%f ", &temp);
+        fscanf(fp, "%f ", &temp);
+        fscanf(fp, "%f ", &temp);
 
 
     }
     fclose(fp);
 
-    sprintf_s(filename, "%s\\mpis_360", inputFolder);
+    sprintf(filename, "%s\\mpis_360", inputFolder);
 
     CPU_FLOAT* pC2WCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
     CPU_FLOAT* pW2CCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
@@ -431,7 +432,7 @@ void RenderingOriginalTest_API()
     Mat img(outHeight, outWidth, CV_8UC3, pImage);
     for (int i = 0; i < numView; i++) {
         SJCUDARenderer_Rendering(renderer, &pViewArr[i * 16], pImageCUDA, pImage);
-        sprintf_s(filename, "%s\\%03d.png", outputFolder, i);
+        sprintf(filename, "%s\\%03d.png", outputFolder, i);
         imwrite(filename, img);
     }
     SJCUDARenderer_Finalize(renderer);
@@ -462,10 +463,10 @@ void RenderingOriginalTest_API2()
 
 
     char filename[1024];
-    sprintf_s(filename, "mkdir %s", outputFolder);
+    sprintf(filename, "mkdir %s", outputFolder);
     system(filename);
 
-    sprintf_s(filename, "%s\\test_path_10.txt", inputFolder);
+    sprintf(filename, "%s\\test_path_10.txt", inputFolder);
 
     float* pViewArr = SJCUDARenderer_GetRenderPath(filename);
     int numView = 45;
@@ -475,7 +476,7 @@ void RenderingOriginalTest_API2()
         }
         printf("\n");
     }
-    sprintf_s(filename, "%s\\mpis_360", inputFolder);
+    sprintf(filename, "%s\\mpis_360", inputFolder);
 
     CPU_FLOAT* pC2WCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
     CPU_FLOAT* pW2CCPU = new CPU_FLOAT[pDim[0] * pDim[1] * 16];
@@ -510,7 +511,7 @@ void RenderingOriginalTest_API2()
     Mat img(outHeight, outWidth, CV_8UC3, pImage);
     for (int i = 0; i < numView; i++) {
         SJCUDARenderer_Rendering(renderer, &pViewArr[i * 16], pImageCUDA, pImage);
-        sprintf_s(filename, "%s\\%03d.png", outputFolder, i);
+        sprintf(filename, "%s\\%03d.png", outputFolder, i);
         imwrite(filename, img);
     }
     SJCUDARenderer_Finalize(renderer);
@@ -531,6 +532,7 @@ void RenderingOriginalTest_API2()
 
 int main()
 {
+    SJLog::SetLOGLevel(LOG_LEVEL::VERBOSE);
     //RenderingCompressedTest();
     //RenderingOriginalTest();
     //RenderingOriginalTest_API();

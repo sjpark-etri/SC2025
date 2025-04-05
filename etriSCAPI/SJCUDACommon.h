@@ -1,5 +1,5 @@
 #pragma once
-
+#include <cstddef>
 //#define RGB_24
 //#define VERBOSE
 #define NUM_POSSIBLE_CAM 100

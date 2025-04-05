@@ -39,8 +39,8 @@ int SJCUDARenderer_LoadMPIFromFolder(char* foldername, size_t* pMPIDim, unsigned
     unsigned char* temp = new unsigned char[pMPIDim[2] * pMPIDim[3] * pMPIDim[4] * 4];
 
     for (SJDim i = 0; i < pMPIDim[0] * pMPIDim[1]; i++) {
-        sprintf_s(command, "%s\\mpi%02d\\mpi.b", foldername, i);
-        fopen_s(&fp, command, "rb");
+        sprintf(command, "%s\\mpi%02d\\mpi.b", foldername, i);
+        fp = fopen(command, "rb");
         fread(temp, 1, pMPIDim[2] * pMPIDim[3] * pMPIDim[4] * 4 * sizeof(unsigned char), fp);
         fclose(fp);
 
@@ -56,16 +56,16 @@ int SJCUDARenderer_LoadDataFromFolder(char* foldername, size_t* pMPIDim, float* 
     int width, height, level;
     float focal;
     for (size_t i = 0; i < pMPIDim[0] * pMPIDim[1]; i++) {
-        sprintf_s(filename, "%s\\mpi%02d\\metadata.txt", foldername, i);
-        fopen_s(&fp, filename, "r");
-        fscanf_s(fp, "%d %d %d %f\n", &width, &height, &level, &pCIF[2 + i * 3]);
+        sprintf(filename, "%s\\mpi%02d\\metadata.txt", foldername, i);
+        fp = fopen(filename, "r");
+        fscanf(fp, "%d %d %d %f\n", &width, &height, &level, &pCIF[2 + i * 3]);
         for (int j = 0; j < 16; j++) {
             if (j % 4 != 3)
-                fscanf_s(fp, "%f ", &pC2W[j + i * 16]);
+                fscanf(fp, "%f ", &pC2W[j + i * 16]);
             else
                 pC2W[j + i * 16] = j < 15 ? 0. : 1.;
         }
-        fscanf_s(fp, "%f %f", &pCIF[1 + i * 3], &pCIF[i * 3]);
+        fscanf(fp, "%f %f", &pCIF[1 + i * 3], &pCIF[i * 3]);
         //pCIF[2 + i * 3] = pCIF[2 + i * 3] * 4;
         fclose(fp);
 
@@ -142,26 +142,26 @@ float* SJCUDARenderer_GetRenderPath(char* filename)
     float* pViewArr;
 
     
-    fopen_s(&fp, filename, "r");
-    fscanf_s(fp, "%d", &numView);
+    fp = fopen(filename, "r");
+    fscanf(fp, "%d", &numView);
     pViewArr = new float[16 * numView];
     float temp;
 
     for (int i = 0; i < numView; i++) {
         for (int j = 0; j < 3; j++) {
             for (int k = 0; k < 3; k++) {
-                fscanf_s(fp, "%f ", &pViewArr[k + j * 4 + i * 16]);
+                fscanf(fp, "%f ", &pViewArr[k + j * 4 + i * 16]);
             }
         }
         pViewArr[3 + i * 16] = pViewArr[7 + i * 16] = pViewArr[11 + i * 16] = 0;
-        fscanf_s(fp, "%f ", &pViewArr[12 + i * 16]);
-        fscanf_s(fp, "%f ", &pViewArr[13 + i * 16]);
-        fscanf_s(fp, "%f ", &pViewArr[14 + i * 16]);
+        fscanf(fp, "%f ", &pViewArr[12 + i * 16]);
+        fscanf(fp, "%f ", &pViewArr[13 + i * 16]);
+        fscanf(fp, "%f ", &pViewArr[14 + i * 16]);
         pViewArr[15 + i * 16] = 1.0;
 
-        fscanf_s(fp, "%f ", &temp);
-        fscanf_s(fp, "%f ", &temp);
-        fscanf_s(fp, "%f ", &temp);
+        fscanf(fp, "%f ", &temp);
+        fscanf(fp, "%f ", &temp);
+        fscanf(fp, "%f ", &temp);
 
 
     }

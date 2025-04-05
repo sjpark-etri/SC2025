@@ -22,14 +22,18 @@ void SJLog::PrintLOG(const LOG_LEVEL level, const char* file, const char* func, 
 		char copyPath[1024];
 		char filename[1024];
 		char* prefix;
-		strcpy_s(copyPath, sizeof(copyPath), file);
+		strcpy(copyPath, file);
+		//strcpy_s(copyPath, sizeof(copyPath), file);
 		prefix = _strrev(copyPath);
 
-		char* context = NULL;
-		char* token = strtok_s(prefix, "\\", &context);
-		char* token1 = strtok_s(token, ".", &context);
-		prefix = _strrev(context);
+		//char* context = NULL;
+		//char* token = strtok_s(prefix, "\\", &context);
+		//char* token1 = strtok_s(token, ".", &context);
+		//prefix = _strrev(context);
 
+		char* token = strtok(prefix, "\\");
+		char* token1 = strtok(token, ".");
+		prefix = _strrev(strtok(NULL, "."));
 
 		va_list ap;
 		va_start(ap, format);
