@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SJPlenopticPacker", "SJPlen
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SCAPI", "SCAPI\SCAPI.vcxproj", "{D2C1083B-9407-4F96-B864-79850B024ED2}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "etriSCAPI", "etriSCAPI\etriSCAPI.vcxproj", "{28F8995E-36CE-4F05-B2AB-0C1772EA26CB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -61,6 +63,14 @@ Global
 		{D2C1083B-9407-4F96-B864-79850B024ED2}.Release|x64.Build.0 = Release|x64
 		{D2C1083B-9407-4F96-B864-79850B024ED2}.Release|x86.ActiveCfg = Release|Win32
 		{D2C1083B-9407-4F96-B864-79850B024ED2}.Release|x86.Build.0 = Release|Win32
+		{28F8995E-36CE-4F05-B2AB-0C1772EA26CB}.Debug|x64.ActiveCfg = Debug|x64
+		{28F8995E-36CE-4F05-B2AB-0C1772EA26CB}.Debug|x64.Build.0 = Debug|x64
+		{28F8995E-36CE-4F05-B2AB-0C1772EA26CB}.Debug|x86.ActiveCfg = Debug|Win32
+		{28F8995E-36CE-4F05-B2AB-0C1772EA26CB}.Debug|x86.Build.0 = Debug|Win32
+		{28F8995E-36CE-4F05-B2AB-0C1772EA26CB}.Release|x64.ActiveCfg = Release|x64
+		{28F8995E-36CE-4F05-B2AB-0C1772EA26CB}.Release|x64.Build.0 = Release|x64
+		{28F8995E-36CE-4F05-B2AB-0C1772EA26CB}.Release|x86.ActiveCfg = Release|Win32
+		{28F8995E-36CE-4F05-B2AB-0C1772EA26CB}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
