@@ -82,7 +82,7 @@ class SCAPI:
         self.SJCUDARenderer_GetRenderPath.argtypes = [ctypes.c_char_p]
 
     def SetInputFolder(self, path):
-        filename = (path + "/mpis_360/metadata.txt")
+        filename = os.path.join(os.path.join(path, "mpis_360"), "metadata.txt")
         lines = open(filename, 'r').read().split('\n')
         num, w, h, d = [int(x) for x in lines[0].split(' ')]
         
@@ -92,7 +92,7 @@ class SCAPI:
         self.outWidth = self.pDim[3]
         self.outHeight = self.pDim[2]
         
-        filename = (path + "/mpis_360").encode("utf-8")
+        filename = os.path.join(path, "mpis_360").encode("utf-8")
         self.pC2WCPU = self.SJCUDARenderer_CPU_FLOAT_Alloc(self.pDim[0] * self.pDim[1] * 16)
         self.pW2CCPU = self.SJCUDARenderer_CPU_FLOAT_Alloc(self.pDim[0] * self.pDim[1] * 16)
         self.pCIFCPU = self.SJCUDARenderer_CPU_FLOAT_Alloc(self.pDim[0] * self.pDim[1] * 3)
@@ -113,6 +113,11 @@ class SCAPI:
         self.SJCUDARenderer_InitializeRendering(self.renderer, self.outWidth, self.outHeight, 5)
         self.SJCUDARenderer_LoadMPI(self.renderer, None, self.pMPICUDA)        
         
+        self.poses, pts3d, perm, w2c, c2w, hwf = load_colmap_data(path)
+        cdepth, idepth = computecloseInfinity(self.poses, pts3d, perm)
+        self.close_depth = np.min(cdepth) * 0.9
+        self.inf_depth = np.max(idepth) * 2.0
+        
     def GetRenderPathFromFile(self, path, path_filename):
         filename = os.path.join(path, path_filename)
         lines = open(filename, 'r').read().split('\n')
@@ -120,12 +125,8 @@ class SCAPI:
         filename = os.path.join(path, path_filename).encode('utf-8')
         self.pViewArr = self.SJCUDARenderer_GetRenderPath(filename)
     
-    def GetRenderPath(self, path, view_range, focal, N):
-        poses, pts3d, perm, w2c, c2w, hwf = load_colmap_data(path)
-        cdepth, idepth = computecloseInfinity(poses, pts3d, perm)
-        close_depth = np.min(cdepth) * 0.9
-        inf_depth = np.max(idepth) * 2.0
-        render_poses = generate_render_path_param1(poses, close_depth, inf_depth, view_range, focal, comps=[True, False, False], N=N)
+    def GetRenderPath(self, view_range, focal, N):
+        render_poses = generate_render_path_param1(self.poses, self.close_depth, self.inf_depth, view_range, focal, comps=[True, False, False], N=N)
         render_poses = np.concatenate([render_poses[...,1:2], -render_poses[...,0:1], render_poses[...,2:]], -1)
         render_poses = np.transpose(render_poses, (0, 2, 1))
         render_poses = render_poses[:,0:4,:]
@@ -141,6 +142,14 @@ class SCAPI:
         self.SJCUDARenderer_Rendering(self.renderer, offset_ptr, self.pImageCUDA, self.pImage)
         return np.ctypeslib.as_array(self.pImage, (self.outHeight, self.outWidth, 3))
 
+    def FullRendering(self, view_range, focal, N):
+        self.GetRenderPath(view_range, focal, N)
+        images = []
+        for i in range(self.numView):
+            image = self.Rendering(i)
+            images.append(image.copy())
+        return np.array(images)
+        
     def Finalize(self):
         self.SJCUDARenderer_CPU_FLOAT_Free(self.pC2WCPU)
         self.SJCUDARenderer_CPU_FLOAT_Free(self.pW2CCPU)
