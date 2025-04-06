@@ -3,6 +3,7 @@ import ctypes
 import sys
 from misc import *
 import numpy as np
+import cv2
 
 class SCAPI:
     def __init__(self):
@@ -79,28 +80,78 @@ class SCAPI:
         self.SJCUDARenderer_GetRenderPath = dll.SJCUDARenderer_GetRenderPath
         self.SJCUDARenderer_GetRenderPath.restype = ctypes.POINTER(ctypes.c_float)
         self.SJCUDARenderer_GetRenderPath.argtypes = [ctypes.c_char_p]
-    
-    def GetRenderPath(self, path, path_filename):
-        numView = 45
+
+    def SetInputFolder(self, path):
+        filename = (path + "/mpis_360/metadata.txt")
+        lines = open(filename, 'r').read().split('\n')
+        num, w, h, d = [int(x) for x in lines[0].split(' ')]
+        
+        self.pDim = (ctypes.c_size_t * 4)(1, num, h, w)
+        self.pMPIDim = (ctypes.c_size_t * 5)(1, num, h, w, d)
+        
+        self.outWidth = self.pDim[3]
+        self.outHeight = self.pDim[2]
+        
+        filename = (path + "/mpis_360").encode("utf-8")
+        self.pC2WCPU = self.SJCUDARenderer_CPU_FLOAT_Alloc(self.pDim[0] * self.pDim[1] * 16)
+        self.pW2CCPU = self.SJCUDARenderer_CPU_FLOAT_Alloc(self.pDim[0] * self.pDim[1] * 16)
+        self.pCIFCPU = self.SJCUDARenderer_CPU_FLOAT_Alloc(self.pDim[0] * self.pDim[1] * 3)
+        self.pC2WCUDA = self.SJCUDARenderer_CUDA_FLOAT_Alloc(self.pDim[0] * self.pDim[1] * 16)
+        self.pW2CCUDA = self.SJCUDARenderer_CUDA_FLOAT_Alloc(self.pDim[0] * self.pDim[1] * 16)
+        self.pCIFCUDA = self.SJCUDARenderer_CUDA_FLOAT_Alloc(self.pDim[0] * self.pDim[1] * 3)
+        
+        self.SJCUDARenderer_LoadDataFromFolder(filename, self.pMPIDim, self.pC2WCPU, self.pC2WCUDA, self.pW2CCPU, self.pW2CCUDA, self.pCIFCPU, self.pCIFCUDA)
+
+        self.pMPICUDA = self.SJCUDARenderer_CUDA_UCHAR_Alloc(self.pMPIDim[0] * self.pMPIDim[1] * self.pMPIDim[2] * self.pMPIDim[3] * self.pMPIDim[4] * 4)
+        self.SJCUDARenderer_LoadMPIFromFolder(filename, self.pMPIDim, self.pMPICUDA)
+
+        self.pImageCUDA = self.SJCUDARenderer_CUDA_UCHAR_Alloc(self.outWidth * self.outHeight * 3)
+        self.pImage = self.SJCUDARenderer_CPU_UCHAR_Alloc(self.outWidth * self.outHeight * 3)
+
+        self.renderer = self.SJCUDARenderer_New()
+        self.SJCUDARenderer_Initialize(self.renderer, self.pDim, self.pMPIDim, self.pC2WCPU, self.pC2WCUDA, self.pW2CCPU, self.pW2CCUDA, self.pCIFCPU, self.pCIFCUDA)
+        self.SJCUDARenderer_InitializeRendering(self.renderer, self.outWidth, self.outHeight, 5)
+        self.SJCUDARenderer_LoadMPI(self.renderer, None, self.pMPICUDA)        
+        
+    def GetRenderPathFromFile(self, path, path_filename):
+        filename = os.path.join(path, path_filename)
+        lines = open(filename, 'r').read().split('\n')
+        self.numView = int(lines[0])
         filename = os.path.join(path, path_filename).encode('utf-8')
-        return numView, self.SJCUDARenderer_GetRenderPath(filename)
-    def GetRenderPath(self, path):
+        self.pViewArr = self.SJCUDARenderer_GetRenderPath(filename)
+    
+    def GetRenderPath(self, path, view_range, focal, N):
         poses, pts3d, perm, w2c, c2w, hwf = load_colmap_data(path)
         cdepth, idepth = computecloseInfinity(poses, pts3d, perm)
         close_depth = np.min(cdepth) * 0.9
         inf_depth = np.max(idepth) * 2.0
-        render_poses = generate_render_path_param1(poses, close_depth, inf_depth, 1.0, 10.0, comps=[True, False, False], N=49)
-
+        render_poses = generate_render_path_param1(poses, close_depth, inf_depth, view_range, focal, comps=[True, False, False], N=N)
         render_poses = np.concatenate([render_poses[...,1:2], -render_poses[...,0:1], render_poses[...,2:]], -1)
-
         render_poses = np.transpose(render_poses, (0, 2, 1))
         render_poses = render_poses[:,0:4,:]
-        bottom_column = np.tile(np.array([0, 0, 0, 1]).reshape(1, 4, 1), (49, 1, 1))
+        bottom_column = np.tile(np.array([0, 0, 0, 1]).reshape(1, 4, 1), (N, 1, 1))
         render_poses = np.concatenate([render_poses, bottom_column], axis=2)
-
-        numView = render_poses.shape[0]
+        
+        self.numView = render_poses.shape[0]
         render_poses = render_poses.reshape(-1).astype(np.float32)
-        pViewArr = render_poses.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
-        return numView, pViewArr
+        self.pViewArr = render_poses.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
+    
+    def Rendering(self, id):
+        offset_ptr = ctypes.cast(ctypes.addressof(self.pViewArr.contents) + 16 * id * ctypes.sizeof(ctypes.c_float), ctypes.POINTER(ctypes.c_float))
+        self.SJCUDARenderer_Rendering(self.renderer, offset_ptr, self.pImageCUDA, self.pImage)
+        return np.ctypeslib.as_array(self.pImage, (self.outHeight, self.outWidth, 3))
+
+    def Finalize(self):
+        self.SJCUDARenderer_CPU_FLOAT_Free(self.pC2WCPU)
+        self.SJCUDARenderer_CPU_FLOAT_Free(self.pW2CCPU)
+        self.SJCUDARenderer_CPU_FLOAT_Free(self.pCIFCPU)
+        self.SJCUDARenderer_CUDA_FLOAT_Free(self.pC2WCUDA)
+        self.SJCUDARenderer_CUDA_FLOAT_Free(self.pW2CCUDA)
+        self.SJCUDARenderer_CUDA_FLOAT_Free(self.pCIFCUDA)
+        self.SJCUDARenderer_CUDA_UCHAR_Free(self.pMPICUDA)
+        self.SJCUDARenderer_CPU_UCHAR_Free(self.pImage)
+        self.SJCUDARenderer_CUDA_UCHAR_Free(self.pImageCUDA)
+        self.SJCUDARenderer_Finalize(self.renderer)
+
     
 
