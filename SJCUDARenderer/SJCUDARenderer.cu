@@ -1,6 +1,5 @@
 #include "SJCUDARenderer.h"
 #include "SJLog.h"
-#include "SJPlenopticPacker.h"
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"

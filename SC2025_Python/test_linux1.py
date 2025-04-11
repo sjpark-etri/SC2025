@@ -1,8 +1,18 @@
 import SCAPI
 import cv2
 import os
-inputFolder = "../Data/Sample1"
-outputFolder = "../Data/RenderingResult3"
+import sys
+sys.path.append('../LLFF')
+from make_layer import make_layer1
+
+
+inputFolder = "../Data/Sample3"
+outputFolder = "../Data/RenderingResult5"
+
+make_layer1(inputFolder, 4)
+
+if not os.path.exists(outputFolder):
+    os.makedirs(outputFolder)
 
 api = SCAPI.SCAPI()
 api.SetInputFolder(inputFolder)
