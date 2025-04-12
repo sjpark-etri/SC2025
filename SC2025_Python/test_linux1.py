@@ -2,14 +2,14 @@ import SCAPI
 import cv2
 import os
 import sys
-sys.path.append('../LLFF')
-from make_layer import make_layer1
+#sys.path.append('../LLFF')
+#from make_layer import make_layer1
 
 
 inputFolder = "../Data/Sample3"
 outputFolder = "../Data/RenderingResult5"
 
-make_layer1(inputFolder, 4)
+#make_layer1(inputFolder, 4)
 
 if not os.path.exists(outputFolder):
     os.makedirs(outputFolder)

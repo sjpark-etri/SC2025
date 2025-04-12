@@ -10,6 +10,7 @@ WORKDIR /opt
 RUN git clone https://github.com/colmap/colmap.git
 RUN cd colmap
 WORKDIR /opt/colmap
+RUN git checkout tags/3.11.0
 RUN mkdir build
 RUN cd build
 WORKDIR /opt/colmap/build
@@ -22,7 +23,7 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip install --upgrade pip
 
-RUN pip3 --no-cache-dir install --upgrade ipython imageio-ffmpeg ipykernel jupyter jupyterlab matplotlib numpy==1.23.4 scipy scikit-learn Pillow scikit-image imageio==2.20.0 opencv-python
+RUN pip3 --no-cache-dir install --upgrade ipython imageio-ffmpeg ipykernel jupyter jupyterlab matplotlib numpy==1.23.4 scipy scikit-learn Pillow scikit-image imageio==2.20.0 opencv-python pyinstaller
 
 
 ENV LD_LIBRARY_PATH /usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH
