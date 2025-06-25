@@ -45,8 +45,8 @@ def gen_mpis(basedir, savedir, factor, logdir, num_planes):
     return True
 
 if __name__=='__main__':
-    checkpoint = './checkpoints/papermodel/checkpoint'
+    checkpoint = 'checkpoints/papermodel/checkpoint'
     numplanes = 32
     mpidir = args.scenedir + '/mpis_360'
-    gen_poses(args.scenedir)        
+    #gen_poses(args.scenedir)            
     gen_mpis(args.scenedir, mpidir, args.factor, checkpoint, numplanes)
