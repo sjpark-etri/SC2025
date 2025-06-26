@@ -1,5 +1,5 @@
 from llff.inference.mpi_utils import run_inference
-from llff.poses.pose_utils import gen_poses
+from llff.poses.pose_utils import load_colmap_data, save_poses
 from llff.poses.pose_utils import load_data
 from llff.inference.mpi_tester import DeepIBR
 import os
@@ -48,5 +48,9 @@ if __name__=='__main__':
     checkpoint = 'checkpoints/papermodel/checkpoint'
     numplanes = 32
     mpidir = args.scenedir + '/mpis_360'
-    #gen_poses(args.scenedir)            
+    #gen_poses(args.scenedir)           
+    
+    poses, pts3d, perm = load_colmap_data(args.scenedir)    
+    save_poses(args.scenedir, poses, pts3d, perm) 
+    
     gen_mpis(args.scenedir, mpidir, args.factor, checkpoint, numplanes)

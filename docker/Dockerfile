@@ -5,19 +5,19 @@ FROM nvcr.io/nvidia/tensorflow:23.03-tf1-py3
 
 RUN apt-get update && apt-get install -y git cmake build-essential ninja-build libboost-program-options-dev libboost-graph-dev libboost-system-dev libeigen3-dev libflann-dev libfreeimage-dev libmetis-dev libgoogle-glog-dev libgtest-dev libgmock-dev libsqlite3-dev libglew-dev qtbase5-dev libqt5opengl5-dev libcgal-dev libceres-dev curl ffmpeg pkg-config python3 python3-dev rsync software-properties-common unzip libopencv-dev imagemagick
 
-RUN cd /opt
+#RUN cd /opt
 WORKDIR /opt
 RUN git clone https://github.com/colmap/colmap.git
-RUN cd colmap
+#RUN cd colmap
 WORKDIR /opt/colmap
 RUN git checkout tags/3.11.0
-RUN mkdir build
-RUN cd build
+#RUN mkdir build
+#RUN cd build
 WORKDIR /opt/colmap/build
 RUN cmake .. -GNinja
 RUN ninja
 RUN ninja install
-RUN cd /
+#RUN cd /
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 

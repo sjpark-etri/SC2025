@@ -1,1 +1,1 @@
-docker run --gpus all -it --rm -p 8888:8888 --volume /:/host --workdir /host$PWD scapi2
+docker run --gpus all -it --rm --volume /:/host --workdir /host$PWD scapi2
