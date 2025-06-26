@@ -4,14 +4,18 @@ import sys
 from misc import *
 import numpy as np
 import cv2
+import subprocess
 
 class SCAPI:
     def __init__(self):
         if sys.platform == "win32":
             dll = ctypes.cdll.LoadLibrary("..\\bin\\SCAPI.dll")
         else:
-            os.environ['LD_LIBRARY_PATH'] = "../etriSCAPI" + os.environ.get("LD_LIBRARY_PATH", "")
-            dll = ctypes.cdll.LoadLibrary("../etriSCAPI/libetriSCAPI.so")
+            #os.environ['LD_LIBRARY_PATH'] = "../etriSCAPI" + os.environ.get("LD_LIBRARY_PATH", "")
+            #dll = ctypes.cdll.LoadLibrary("../etriSCAPI/libetriSCAPI.so")
+            os.environ['LD_LIBRARY_PATH'] = "/etri_workspace" + os.environ.get("LD_LIBRARY_PATH", "")
+            dll = ctypes.cdll.LoadLibrary("/etri_workspace/libetriSCAPI.so")
+            
 
         self.SJCUDARenderer_New = dll.SJCUDARenderer_New
         self.SJCUDARenderer_New.restype = ctypes.c_void_p
@@ -81,7 +85,22 @@ class SCAPI:
         self.SJCUDARenderer_GetRenderPath.restype = ctypes.POINTER(ctypes.c_float)
         self.SJCUDARenderer_GetRenderPath.argtypes = [ctypes.c_char_p]
 
-    def SetInputFolder(self, path):
+    def SetInputFolder(self, path, factor):
+        if not os.path.exists(os.path.join(path, 'sparse/0')):
+            try:            
+                subprocess.run(['colmap', 'feature_extractor', '--database_path', os.path.join(path, 'database.db'), '--image_path', os.path.join(path, 'images')], check=True)
+                subprocess.run(['colmap', 'exhaustive_matcher', '--database_path', os.path.join(path, 'database.db')], check=True)
+                os.makedirs(os.path.join(path, 'sparse'))
+                subprocess.run(['colmap', 'mapper','--database_path', os.path.join(path, 'database.db'), '--image_path', os.path.join(path, 'images'), '--output_path', os.path.join(path, 'sparse')], check=True)            
+            except subprocess.CalledProcessError as e:
+                return -1
+
+        if not os.path.exists(os.path.join(path, "mpis_360")):
+            try:
+                subprocess.run(['make_layer', path, str(factor)], check=True)
+            except subprocess.CalledProcessError as e:
+                return -2
+        
         filename = os.path.join(os.path.join(path, "mpis_360"), "metadata.txt")
         lines = open(filename, 'r').read().split('\n')
         num, w, h, d = [int(x) for x in lines[0].split(' ')]
@@ -117,7 +136,8 @@ class SCAPI:
         cdepth, idepth = computecloseInfinity(self.poses, pts3d, perm)
         self.close_depth = np.min(cdepth) * 0.9
         self.inf_depth = np.max(idepth) * 2.0
-        
+        return 0
+    
     def GetRenderPathFromFile(self, path, path_filename):
         filename = os.path.join(path, path_filename)
         lines = open(filename, 'r').read().split('\n')
@@ -149,7 +169,14 @@ class SCAPI:
             image = self.Rendering(i)
             images.append(image.copy())
         return np.array(images)
-        
+    
+    def MakeLayer(self, path, factor):
+        try:
+            subprocess.run(['make_layer', path, str(factor)], check=True)
+        except subprocess.CalledProcessError as e:
+            return -2
+        return 0
+
     def Finalize(self):
         self.SJCUDARenderer_CPU_FLOAT_Free(self.pC2WCPU)
         self.SJCUDARenderer_CPU_FLOAT_Free(self.pW2CCPU)

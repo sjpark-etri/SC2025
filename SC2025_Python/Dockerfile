@@ -17,8 +17,13 @@ RUN ninja install
 COPY ./_internal /etri_workspace/_internal
 COPY ./checkpoints /etri_workspace/checkpoints
 COPY ./make_layer /etri_workspace
+COPY ./colmap_read_model.py /etri_workspace
+COPY ./misc.py /etri_workspace
+COPY ./libetriSCAPI.so /etri_workspace
 COPY ./SCAPI.py /etri_workspace
 
+RUN python3 -m pip install --upgrade pip
+RUN pip3 --no-cache-dir install --upgrade ipython imageio-ffmpeg ipykernel jupyter jupyterlab matplotlib numpy==1.23.4 scipy scikit-learn Pillow scikit-image imageio==2.20.0 opencv-python pyinstaller
 
 ENV LD_LIBRARY_PATH /usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 ENV PATH /etri_workspace:$PATH
