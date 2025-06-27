@@ -23,13 +23,14 @@ COPY ./libetriSCAPI.so /etri_workspace
 COPY ./SCAPI.py /etri_workspace
 
 RUN python3 -m pip install --upgrade pip
-RUN pip3 --no-cache-dir install --upgrade ipython imageio-ffmpeg ipykernel jupyter jupyterlab matplotlib numpy==1.23.4 scipy scikit-learn Pillow scikit-image imageio==2.20.0 opencv-python pyinstaller
+RUN pip3 install git+https://github.com/facebookresearch/sam2.git
+RUN pip3 --no-cache-dir install --upgrade pyyaml plyfile tqdm termcolor kornia imgaug lpips tensorboardX ipdb argparse pytorch_msssim open3d ipython ipykernel jupyter jupyterlab scikit-image imageio imageio[ffmpeg] imageio[pyav] mmcv==1.6.0 matplotlib numpy==1.26.4 scipy scikit-learn Pillow scikit-image opencv-python pyinstaller
 
 ENV LD_LIBRARY_PATH /usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 ENV PATH /etri_workspace:$PATH
+ENV TORCH_CUDA_ARCH_LIST="7.0;7.5;8.0;8.6;8.9;9.0+PTX"
 
-RUN echo 'ln /dev/null /dev/raw1394' >> ~/.bashrc
+#RUN echo 'ln /dev/null /dev/raw1394' >> ~/.bashrc
 
-#RUN mkdir -p /workspace
-WORKDIR /etri_workspace
-RUN chmod -R a+w /etri_workspace
+#WORKDIR /etri_workspace
+#RUN chmod -R a+w /etri_workspace
