@@ -8,8 +8,8 @@ import numpy as np
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('scenedir', type=str,
-                    help='input scene directory')
+parser.add_argument('scenedir', type=str, help='input scene directory')
+parser.add_argument('mpidir', type=str, help='output mpi directory')
 parser.add_argument('factor', type=int, help = 'factor')
 
 args = parser.parse_args()
@@ -47,7 +47,7 @@ def gen_mpis(basedir, savedir, factor, logdir, num_planes):
 if __name__=='__main__':
     checkpoint = '/etri_workspace/checkpoints/papermodel/checkpoint'
     numplanes = 32
-    mpidir = args.scenedir + '/mpis_360'
+    mpidir = args.mpidir + '/mpis_360'
     #gen_poses(args.scenedir)           
     
     poses, pts3d, perm = load_colmap_data(args.scenedir)    

@@ -1,11 +1,11 @@
 import sys
-sys.path.append('/etri_workspace')
+#sys.path.append('/etri_workspace')
 import SCAPI
 import subprocess
 import cv2
 
-inputFolder = "./Data/Sample3"
-paramFolder = "./Data/Param"
+inputFolder = "../Data/Sample3"
+paramFolder = "../Data/Param"
 api = SCAPI.SCAPI()
 m = api.SetInputFolder(paramFolder, inputFolder, 4)
 q = api.MakeQuiltImage(1.0, 50, 7, 7)

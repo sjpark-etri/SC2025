@@ -85,23 +85,23 @@ class SCAPI:
         self.SJCUDARenderer_GetRenderPath.restype = ctypes.POINTER(ctypes.c_float)
         self.SJCUDARenderer_GetRenderPath.argtypes = [ctypes.c_char_p]
 
-    def SetInputFolder(self, path, factor):
-        if not os.path.exists(os.path.join(path, 'sparse/0')):
+    def SetInputFolder(self, param_dir, mpi_dir, factor):
+        if not os.path.exists(os.path.join(param_dir, 'sparse/0')):
             try:            
-                subprocess.run(['colmap', 'feature_extractor', '--database_path', os.path.join(path, 'database.db'), '--image_path', os.path.join(path, 'images')], check=True)
-                subprocess.run(['colmap', 'exhaustive_matcher', '--database_path', os.path.join(path, 'database.db')], check=True)
-                os.makedirs(os.path.join(path, 'sparse'))
-                subprocess.run(['colmap', 'mapper','--database_path', os.path.join(path, 'database.db'), '--image_path', os.path.join(path, 'images'), '--output_path', os.path.join(path, 'sparse')], check=True)            
+                subprocess.run(['colmap', 'feature_extractor', '--database_path', os.path.join(param_dir, 'database.db'), '--image_path', os.path.join(param_dir, 'images')], check=True)
+                subprocess.run(['colmap', 'exhaustive_matcher', '--database_path', os.path.join(param_dir, 'database.db')], check=True)
+                os.makedirs(os.path.join(param_dir, 'sparse'))
+                subprocess.run(['colmap', 'mapper','--database_path', os.path.join(param_dir, 'database.db'), '--image_path', os.path.join(param_dir, 'images'), '--output_path', os.path.join(param_dir, 'sparse')], check=True)            
             except subprocess.CalledProcessError as e:
                 return -1
 
-        if not os.path.exists(os.path.join(path, "mpis_360")):
+        if not os.path.exists(os.path.join(mpi_dir, "mpis_360")):
             try:
-                subprocess.run(['make_layer', path, str(factor)], check=True)
+                subprocess.run(['make_layer', param_dir, mpi_dir, str(factor)], check=True)
             except subprocess.CalledProcessError as e:
                 return -2
         
-        filename = os.path.join(os.path.join(path, "mpis_360"), "metadata.txt")
+        filename = os.path.join(os.path.join(mpi_dir, "mpis_360"), "metadata.txt")
         lines = open(filename, 'r').read().split('\n')
         num, w, h, d = [int(x) for x in lines[0].split(' ')]
         
@@ -111,7 +111,7 @@ class SCAPI:
         self.outWidth = self.pDim[3]
         self.outHeight = self.pDim[2]
         
-        filename = os.path.join(path, "mpis_360").encode("utf-8")
+        filename = os.path.join(mpi_dir, "mpis_360").encode("utf-8")
         self.pC2WCPU = self.SJCUDARenderer_CPU_FLOAT_Alloc(self.pDim[0] * self.pDim[1] * 16)
         self.pW2CCPU = self.SJCUDARenderer_CPU_FLOAT_Alloc(self.pDim[0] * self.pDim[1] * 16)
         self.pCIFCPU = self.SJCUDARenderer_CPU_FLOAT_Alloc(self.pDim[0] * self.pDim[1] * 3)
@@ -132,7 +132,7 @@ class SCAPI:
         self.SJCUDARenderer_InitializeRendering(self.renderer, self.outWidth, self.outHeight, 5)
         self.SJCUDARenderer_LoadMPI(self.renderer, None, self.pMPICUDA)        
         
-        self.poses, pts3d, perm, w2c, c2w, hwf = load_colmap_data(path)
+        self.poses, pts3d, perm, w2c, c2w, hwf = load_colmap_data(param_dir)
         cdepth, idepth = computecloseInfinity(self.poses, pts3d, perm)
         self.close_depth = np.min(cdepth) * 0.9
         self.inf_depth = np.max(idepth) * 2.0
@@ -170,9 +170,19 @@ class SCAPI:
             images.append(image.copy())
         return np.array(images)
     
-    def MakeLayer(self, path, factor):
+    def MakeQuiltImage(self, view_range, focal, rows, cols):
+        images = self.FullRendering(view_range, focal, rows * cols)
+        quilt = np.zeros((images.shape[1] * rows, images.shape[2] * cols, images.shape[3]))
+        for i in range(rows * cols):
+            x = int(i % cols)
+            y = int(i / cols)
+            
+            quilt[(rows - y - 1) * images.shape[1]:(rows - y) * images.shape[1], x * images.shape[2]:(x+1) * images.shape[2], :] = images[i,...]
+        return quilt
+    
+    def MakeLayer(self, param_dir, mpi_dir, factor):
         try:
-            subprocess.run(['make_layer', path, str(factor)], check=True)
+            subprocess.run(['make_layer', param_dir, mpi_dir, str(factor)], check=True)
         except subprocess.CalledProcessError as e:
             return -2
         return 0
