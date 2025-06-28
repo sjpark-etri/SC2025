@@ -85,19 +85,19 @@ class SCAPI:
         self.SJCUDARenderer_GetRenderPath.restype = ctypes.POINTER(ctypes.c_float)
         self.SJCUDARenderer_GetRenderPath.argtypes = [ctypes.c_char_p]
 
-    def SetInputFolder(self, param_dir, mpi_dir, factor):
+    def SetInputFolder(self, param_dir, img_dir, mpi_dir, factor):
         if not os.path.exists(os.path.join(param_dir, 'sparse/0')):
             try:            
-                subprocess.run(['colmap', 'feature_extractor', '--database_path', os.path.join(param_dir, 'database.db'), '--image_path', os.path.join(param_dir, 'images')], check=True)
-                subprocess.run(['colmap', 'exhaustive_matcher', '--database_path', os.path.join(param_dir, 'database.db')], check=True)
                 os.makedirs(os.path.join(param_dir, 'sparse'))
-                subprocess.run(['colmap', 'mapper','--database_path', os.path.join(param_dir, 'database.db'), '--image_path', os.path.join(param_dir, 'images'), '--output_path', os.path.join(param_dir, 'sparse')], check=True)            
+                subprocess.run(['colmap', 'feature_extractor', '--database_path', os.path.join(param_dir, 'database.db'), '--image_path', os.path.join(img_dir, 'images')], check=True)
+                subprocess.run(['colmap', 'exhaustive_matcher', '--database_path', os.path.join(param_dir, 'database.db')], check=True)
+                subprocess.run(['colmap', 'mapper','--database_path', os.path.join(param_dir, 'database.db'), '--image_path', os.path.join(img_dir, 'images'), '--output_path', os.path.join(param_dir, 'sparse')], check=True)            
             except subprocess.CalledProcessError as e:
                 return -1
 
         if not os.path.exists(os.path.join(mpi_dir, "mpis_360")):
             try:
-                subprocess.run(['make_layer', param_dir, mpi_dir, str(factor)], check=True)
+                subprocess.run(['make_layer', param_dir, img_dir, mpi_dir, str(factor)], check=True)
             except subprocess.CalledProcessError as e:
                 return -2
         
@@ -180,9 +180,9 @@ class SCAPI:
             quilt[(rows - y - 1) * images.shape[1]:(rows - y) * images.shape[1], x * images.shape[2]:(x+1) * images.shape[2], :] = images[i,...]
         return quilt
     
-    def MakeLayer(self, param_dir, mpi_dir, factor):
+    def MakeLayer(self, param_dir, img_dir, mpi_dir, factor):
         try:
-            subprocess.run(['make_layer', param_dir, mpi_dir, str(factor)], check=True)
+            subprocess.run(['make_layer', param_dir, img_dir, mpi_dir, str(factor)], check=True)
         except subprocess.CalledProcessError as e:
             return -2
         return 0

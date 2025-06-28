@@ -190,20 +190,20 @@ def minify(basedir, factors=[], resolutions=[]):
             print('Removed duplicates')
         print('Done')
             
-def load_data(basedir, factor):
+def load_data(basedir, imagedir,factor):
     
     poses_arr = np.load(os.path.join(basedir, 'poses_bounds.npy'))
     poses = poses_arr[:, :-2].reshape([-1, 3, 5]).transpose([1,2,0])
     bds = poses_arr[:, -2:].transpose([1,0])
     
-    img0 = [os.path.join(basedir, 'images', f) for f in sorted(os.listdir(os.path.join(basedir, 'images'))) \
+    img0 = [os.path.join(imagedir, 'images', f) for f in sorted(os.listdir(os.path.join(imagedir, 'images'))) \
             if f.endswith('JPG') or f.endswith('jpg') or f.endswith('png')][0]
     sh = imageio.imread(img0).shape
         
     sfx = '_{}'.format(factor)
-    minify(basedir, factors=[factor])
+    minify(imagedir, factors=[factor])
     
-    imgdir = os.path.join(basedir, 'images' + sfx)
+    imgdir = os.path.join(imagedir, 'images' + sfx)
     if not os.path.exists(imgdir):
         print( imgdir, 'does not exist, returning' )
         return

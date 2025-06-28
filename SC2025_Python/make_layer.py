@@ -9,17 +9,18 @@ import numpy as np
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('scenedir', type=str, help='input scene directory')
+parser.add_argument('imagedir', type=str, help='input image directory')
 parser.add_argument('mpidir', type=str, help='output mpi directory')
 parser.add_argument('factor', type=int, help = 'factor')
 
 args = parser.parse_args()
 
-def gen_mpis(basedir, savedir, factor, logdir, num_planes):
+def gen_mpis(basedir, imagedir, savedir, factor, logdir, num_planes):
     if not os.path.exists(savedir):
         os.makedirs(savedir)
     
     # load up images, poses, w/ scale factor
-    poses, bds, imgfiles = load_data(basedir, factor) # 220628 deleted
+    poses, bds, imgfiles = load_data(basedir, imagedir, factor) # 220628 deleted
     print("load data finished")
     # load up model
     ibr_runner = DeepIBR()
@@ -47,10 +48,10 @@ def gen_mpis(basedir, savedir, factor, logdir, num_planes):
 if __name__=='__main__':
     checkpoint = '/etri_workspace/checkpoints/papermodel/checkpoint'
     numplanes = 32
-    mpidir = args.mpidir + '/mpis_360'
-    #gen_poses(args.scenedir)           
     
+    #gen_poses(args.scenedir)           
+    mpidir = os.path.join(args.mpidir, 'mpis_360')
     poses, pts3d, perm = load_colmap_data(args.scenedir)    
     save_poses(args.scenedir, poses, pts3d, perm) 
     
-    gen_mpis(args.scenedir, mpidir, args.factor, checkpoint, numplanes)
+    gen_mpis(args.scenedir, args.imagedir, mpidir, args.factor, checkpoint, numplanes)
