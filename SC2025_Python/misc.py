@@ -235,3 +235,48 @@ def generate_render_path_param1(poses, close_depth, inf_depth, view_range, focal
     render_poses = np.array(render_poses)
     
     return render_poses
+
+def generate_render_path_param_cam(poses, close_depth, inf_depth, view_range, focal, comps=None, N=30):
+    if comps is None:
+        comps = [True]*5
+    
+    dt = .90
+    mean_dz = 1./(((1.-dt)/close_depth + dt/inf_depth))
+    #focal = mean_dz
+    
+    #focal = 30 
+    
+    shrink_factor = .8
+    zdelta = close_depth * .2
+    
+    #c2w = poses_avg(poses)
+    
+    
+    up = normalize(poses[:3, 0, :].sum(-1))
+    
+    render_poses = []
+    if comps[0]:
+        arr = poses[0,3,:]
+        id = np.argpartition(arr, len(arr) // 2)[len(arr) // 2]
+        c2w = poses[:,:,id]
+        tt = ptstocam(poses[:3,3,:].T, c2w).T
+        rads = np.percentile(np.abs(tt), 90, -1)    
+        render_poses += render_path_axis_param(c2w, up, 1, shrink_factor*rads[1], focal, view_range, N)
+    if comps[1]:
+        arr = poses[1,3,:]
+        id = np.argpartition(arr, len(arr) // 2)[len(arr) // 2]
+        c2w = poses[:,:,id]
+        tt = ptstocam(poses[:3,3,:].T, c2w).T
+        rads = np.percentile(np.abs(tt), 90, -1)    
+        render_poses += render_path_axis_param(c2w, up, 0, shrink_factor*rads[0], focal, view_range, N)
+    if comps[2]:
+        arr = poses[2,3,:]
+        id = np.argpartition(arr, len(arr) // 2)[len(arr) // 2]
+        c2w = poses[:,:,id]
+        tt = ptstocam(poses[:3,3,:].T, c2w).T
+        rads = np.percentile(np.abs(tt), 90, -1)    
+        render_poses += render_path_axis_param(c2w, up, 2, shrink_factor*zdelta, focal, view_range, N)
+    
+    render_poses = np.array(render_poses)
+    
+    return render_poses

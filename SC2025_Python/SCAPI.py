@@ -146,15 +146,17 @@ class SCAPI:
         self.pViewArr = self.SJCUDARenderer_GetRenderPath(filename)
     
     def GetRenderPath(self, view_range, focal, N):
-        render_poses = generate_render_path_param1(self.poses, self.close_depth, self.inf_depth, view_range, focal, comps=[True, False, False], N=N)
+        #render_poses = generate_render_path_param1(self.poses, self.close_depth, self.inf_depth, view_range, focal, comps=[True, False, False], N=N)
+        render_poses = generate_render_path_param_cam(self.poses, self.close_depth, self.inf_depth, view_range, focal, comps=[True, False, False], N=N)
         render_poses = np.concatenate([render_poses[...,1:2], -render_poses[...,0:1], render_poses[...,2:]], -1)
         render_poses = np.transpose(render_poses, (0, 2, 1))
         render_poses = render_poses[:,0:4,:]
         bottom_column = np.tile(np.array([0, 0, 0, 1]).reshape(1, 4, 1), (N, 1, 1))
         render_poses = np.concatenate([render_poses, bottom_column], axis=2)
-        
+                
         self.numView = render_poses.shape[0]
         render_poses = render_poses.reshape(-1).astype(np.float32)
+        
         self.pViewArr = render_poses.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
     
     def Rendering(self, id):
@@ -172,6 +174,7 @@ class SCAPI:
     
     def MakeQuiltImage(self, view_range, focal, rows, cols):
         images = self.FullRendering(view_range, focal, rows * cols)
+        
         quilt = np.zeros((images.shape[1] * rows, images.shape[2] * cols, images.shape[3]))
         for i in range(rows * cols):
             x = int(i % cols)
