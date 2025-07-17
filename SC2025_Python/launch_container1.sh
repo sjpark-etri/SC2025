@@ -1,1 +1,1 @@
-docker run --gpus all -it --rm -v ../Data:/etri_workspace/Data scapi2
+docker run --gpus all -it --rm -v ../Data:/etri_workspace/Data etri_scapi:0.1.0

@@ -1,1 +1,1 @@
-docker run --gpus all -it --rm --volume /:/host --workdir /host$PWD scapi2
+docker run --gpus all -it --rm --volume /:/host --workdir /host$PWD etri_scapi:0.1.0
