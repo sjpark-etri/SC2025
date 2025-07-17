@@ -14,21 +14,16 @@ RUN cmake .. -GNinja
 RUN ninja
 RUN ninja install
 
-COPY ./_internal /etri_workspace/_internal
-COPY ./checkpoints /etri_workspace/checkpoints
-COPY ./make_layer /etri_workspace
-COPY ./colmap_read_model.py /etri_workspace
-COPY ./misc.py /etri_workspace
-COPY ./libetriSCAPI.so /etri_workspace
-COPY ./SCAPI.py /etri_workspace
-
 RUN python3 -m pip install --upgrade pip
 RUN pip3 install git+https://github.com/facebookresearch/sam2.git
-RUN pip3 --no-cache-dir install --upgrade pyyaml plyfile tqdm termcolor kornia imgaug lpips tensorboardX ipdb argparse pytorch_msssim open3d ipython ipykernel jupyter jupyterlab scikit-image imageio imageio[ffmpeg] imageio[pyav] mmcv==1.6.0 matplotlib numpy==1.26.4 scipy scikit-learn Pillow scikit-image opencv-python pyinstaller
+RUN pip3 --no-cache-dir install --upgrade pyyaml plyfile tqdm termcolor kornia imgaug lpips tensorboardX ipdb argparse pytorch_msssim open3d ipython ipykernel jupyter jupyterlab scikit-image imageio imageio[ffmpeg] imageio[pyav] mmcv==1.6.0 matplotlib numpy==1.26.4 scipy scikit-learn Pillow scikit-image opencv-python pyinstaller loguru
 
-ENV LD_LIBRARY_PATH /usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
-ENV PATH /etri_workspace:$PATH
+ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 ENV TORCH_CUDA_ARCH_LIST="7.0;7.5;8.0;8.6;8.9;9.0+PTX"
+ENV PATH=/etri_workspace:$PATH
+
+COPY ./modules /etri_workspace
+WORKDIR /etri_workspace
 
 #RUN echo 'ln /dev/null /dev/raw1394' >> ~/.bashrc
 
