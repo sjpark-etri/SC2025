@@ -24,7 +24,8 @@ def render_quilt(view_range: float, focal: float, rows: int, cols: int, result :
     m = api.SetInputFolder(common.PARAM_DIR, common.LAYER_DIR)
     q = api.MakeQuiltImage(view_range, focal, rows, cols)
     cv2.imwrite(os.path.join(common.QUILT_DIR, result), q)
-
+    api.Finalize()
+    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=f"ETRI Spatial Computing Engine v{V.VERSION}")
     parser.add_argument('--view_range', type=float, required=True, help='Specify view_range.')
