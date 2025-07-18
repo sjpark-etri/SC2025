@@ -8,13 +8,13 @@ import version as V
 import SCAPI
 import cv2
 
-def render_quilt(view_range: float, focal: float, rows: int, cols: int, result : str):
+def render_quilt(view_range: float, focal: float, rows: int, cols: int, frame_number : int):
     logger.info(f"action_build_param()")
     logger.info(f"view_range : {view_range}")
     logger.info(f"focal      : {focal}")
     logger.info(f"rows       : {rows}")
     logger.info(f"cols       : {cols}")
-    logger.info(f"result filename : {result}")
+    logger.info(f"frame_number : {frame_number}")
     # 컨테이너 내부에 항상 고정된 위치에 폴더 위치
     # pathlib.Path를 사용하시면, 윈도우/리눅스에서 경로 처리가 간단합니다.
     
@@ -22,9 +22,9 @@ def render_quilt(view_range: float, focal: float, rows: int, cols: int, result :
     scene_dir = Path(common.SCENE_DIR)
 
     api = SCAPI.SCAPI()
-    m = api.SetInputFolder(scene_dir / 'Param', scene_dir / 'Layer')
+    m = api.SetInputFolder(scene_dir / 'Param', scene_dir / 'Layer' / str(frame_number))
     q = api.MakeQuiltImage(view_range, focal, rows, cols)
-    cv2.imwrite(Path(common.OUTPUT_DIR) / result, q)
+    cv2.imwrite(Path(common.OUTPUT_DIR) / (str(frame_number) + ".png"), q)
     api.Finalize()
     
 if __name__ == "__main__":
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     parser.add_argument('--focal', type=float, required=True, help='Specify focal.')
     parser.add_argument('--rows', type=int, required=True, help='Specify rows.')
     parser.add_argument('--cols', type=int, required=True, help='Specify cols.')
-    parser.add_argument('--result', type=str, required=True, help='Specify result filename.')
+    parser.add_argument('--frame_number', type=int, required=True, help='Specify frame number.')
     args = parser.parse_args()
 
     try:

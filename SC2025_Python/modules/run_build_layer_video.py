@@ -6,23 +6,24 @@ import subprocess
 import common
 import version as V
 
-def build_layer(factor: int):
+def build_layer(factor: int, frame_number: int):
     logger.info(f"action_build_layer()")
     scene_dir = Path(common.SCENE_DIR)
 
-    subprocess.run(['make_layer', scene_dir / 'Param', scene_dir / 'Image', scene_dir / 'Layer', str(factor)], check=True)
+    subprocess.run(['make_layer', scene_dir / 'Param', scene_dir / 'Image' / str(frame_number), scene_dir / 'Layer' / str(frame_number), str(factor)], check=True)
     #raise Exception("Data file is not exist.")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=f"ETRI Spatial Computing Engine v{V.VERSION}")
-    parser.add_argument('--factor', type=str, required=True, help='Specify factor.')
+    parser.add_argument('--factor', type=int, required=True, help='Specify factor.')
+    parser.add_argument('--frame_number', type=int, required=True, help='Specify frame number.')
 
     args = parser.parse_args()
     factor = args.factor
 
     try:
-        build_layer(factor)
+        build_layer(args.factor, args.frame_number)
 
         logger.info("Success")
         sys.exit(0)
