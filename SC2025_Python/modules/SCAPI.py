@@ -135,6 +135,8 @@ class SCAPI:
         render_poses = np.concatenate([render_poses[...,1:2], -render_poses[...,0:1], render_poses[...,2:]], -1)
         render_poses = np.transpose(render_poses, (0, 2, 1))
         render_poses = render_poses[:,0:4,:]
+        self.render_poses = render_poses            
+        
         bottom_column = np.tile(np.array([0, 0, 0, 1]).reshape(1, 4, 1), (N, 1, 1))
         render_poses = np.concatenate([render_poses, bottom_column], axis=2)
                 

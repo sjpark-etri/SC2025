@@ -7,6 +7,7 @@ import common
 import version as V
 import SCAPI
 import cv2
+import json
 
 def render(view_range: float, focal: float, num_views: int, result : str):
     logger.info(f"action_build_param()")
@@ -29,6 +30,15 @@ def render(view_range: float, focal: float, num_views: int, result : str):
     for i in range(num_views):
         cv2.imwrite(res_folder  / "{:03d}.png".format(i), imgs[i,...])
     
+    data = {}
+    for i in range(api.render_poses.shape[0]):
+        data["cam{:02d}".format(i)] = {}
+        data["cam{:02d}".format(i)]["rotation"] = api.render_poses[i,0:3,:].tolist()
+        data["cam{:02d}".format(i)]["translation"] = api.render_poses[i,3:4,:].tolist()
+    print(data)
+    with open(res_folder / "param.json", "w") as file:
+        json.dump(data, file, indent=4, sort_keys=True)
+        
     api.Finalize()
     
 if __name__ == "__main__":
