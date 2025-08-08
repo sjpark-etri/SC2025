@@ -8,7 +8,7 @@ import common
 import version as V
 
 
-def build_param():
+def build_param(frame_number : int):
     # 컨테이너 내부에 항상 고정된 위치에 폴더 위치
     # pathlib.Path를 사용하시면, 윈도우/리눅스에서 경로 처리가 간단합니다.
     
@@ -19,16 +19,19 @@ def build_param():
     (scene_dir / 'Param' / 'sparse').mkdir(parents=True, exist_ok=True)
 
     
-    subprocess.run(['colmap', 'feature_extractor', '--database_path', scene_dir / 'Param' / 'database.db', '--image_path', scene_dir / 'Image' / 'images'], check=True)
+    subprocess.run(['colmap', 'feature_extractor', '--database_path', scene_dir / 'Param' / 'database.db', '--image_path', scene_dir / 'Image' / str(frame_number) / 'images'], check=True)
     subprocess.run(['colmap', 'exhaustive_matcher', '--database_path', scene_dir / 'Param' / 'database.db'], check=True)
-    subprocess.run(['colmap', 'mapper','--database_path', scene_dir / 'Param' / 'database.db', '--image_path', scene_dir / 'Image' / 'images', '--output_path', scene_dir / 'Param' / 'sparse'], check=True)            
+    subprocess.run(['colmap', 'mapper','--database_path', scene_dir / 'Param' / 'database.db', '--image_path', scene_dir / 'Image' / str(frame_number) / 'images', '--output_path', scene_dir / 'Param' / 'sparse'], check=True)            
     
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=f"ETRI Spatial Computing Engine v{V.VERSION}")   
+    parser.add_argument('--frame_number', type=int, default=0, help='Specify frame number.')
+
+    args = parser.parse_args()
     
     try:
-        build_param()
+        build_param(args.frame_number)
     
         logger.info("Success")
         sys.exit(0)

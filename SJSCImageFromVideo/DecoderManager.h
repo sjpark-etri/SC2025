@@ -1,0 +1,34 @@
+#pragma once
+#include <cstdint>
+class SCDecoder;
+
+class DecoderManager
+{
+private:
+	int m_numDecoder;
+	bool* m_bStored;
+	SCDecoder* m_pDecoder;
+	
+	unsigned char** m_ppDecoderFrame;
+	char m_pFoldername[1024];
+	int *m_pWidth;
+	int *m_pHeight;
+	int m_iCurrentFrame;
+	int m_mode;
+	int64_t m_numFrame;
+	float m_fFrameRate;
+public:
+	DecoderManager();
+	~DecoderManager();
+	void Initialize(int numDecoder, char** filenames, const char *foldername, int mode);
+	
+	void DoDecoding();
+	void DecodingProcess(unsigned char* frameBuffer, int frameID, int decoderID);
+
+	int64_t GetNumFrame(int idx);
+	float GetFrameRate(int idx);
+
+	int GetWidth(int idx);
+	int GetHeight(int idx);
+};
+

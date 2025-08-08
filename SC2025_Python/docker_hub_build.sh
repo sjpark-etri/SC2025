@@ -1,0 +1,1 @@
+docker buildx build --push --platform linux/amd64 --tag devboxhq/npo:etri_scapi-0.1.2 .
