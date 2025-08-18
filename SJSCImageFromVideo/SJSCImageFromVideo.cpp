@@ -70,8 +70,8 @@ int main(int argc, char* argv[])
     fprintf(fp, "{\n");        
     for(int i=0; i < numDecoder; i++){
         fprintf(fp, "\t  \"Video %d\" : {\n", i);
-        fprintf(fp, "\t\t  \"Frame Number\" : %ld,\n", DecoderManager_GetNumFrame(manager, i));
-        fprintf(fp, "\t\t  \"Frame rate \" : %.03f\n", DecoderManager_GetFrameRate(manager, i));
+        fprintf(fp, "\t\t  \"Frame Number\" : %ld,\n", DecoderManager_GetNumFrame(manager));
+        fprintf(fp, "\t\t  \"Frame rate \" : %.03f\n", DecoderManager_GetFrameRate(manager));
         fprintf(fp, "\t}");
         if(i != numDecoder - 1){
             fprintf(fp, ",");

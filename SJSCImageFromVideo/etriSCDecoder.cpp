@@ -4,11 +4,22 @@ DecoderManager* DecoderManager_New()
 {
 	return new DecoderManager();
 }
+int DecoderManager_Prepare(DecoderManager* manager, int numDecoder, char** filenames, const char *foldername)
+{
+	manager->Prepare(numDecoder, filenames, foldername);
+	return 0;
+}
+	
 int DecoderManager_Initialize(DecoderManager* manager, int numDecoder, char** filenames, const char *foldername)
 {
 	manager->Initialize(numDecoder, filenames, foldername, 0);
 	return 0;
 }	
+int DecoderManager_Initialize_Range(DecoderManager* manager, int numDecoder, char** filenames, const char *foldername, int start, int end)
+{
+	manager->Initialize(numDecoder, filenames, foldername, start, end, 0);
+	return 0;
+}
 int DecoderManager_DoDecoding(DecoderManager* manager)
 {
 	manager->DoDecoding();
@@ -19,19 +30,19 @@ int DecoderManager_Finalize(DecoderManager* manager)
 	delete manager;
 	return 0;
 }
-int64_t DecoderManager_GetNumFrame(DecoderManager* manager, int idx)
+int64_t DecoderManager_GetNumFrame(DecoderManager* manager)
 {
-	return manager->GetNumFrame(idx);
+	return manager->GetNumFrame();
 }
-float DecoderManager_GetFrameRate(DecoderManager* manager, int idx)
+float DecoderManager_GetFrameRate(DecoderManager* manager)
 {
-	return manager->GetFrameRate(idx);
+	return manager->GetFrameRate();
 }
-int DecoderManager_GetWidth(DecoderManager* manager, int idx)
+int DecoderManager_GetWidth(DecoderManager* manager)
 {
-	return manager->GetWidth(idx);
+	return manager->GetWidth();
 }
-int DecoderManager_GetHeight(DecoderManager* manager, int idx)
+int DecoderManager_GetHeight(DecoderManager* manager)
 {
-	return manager->GetHeight(idx);
+	return manager->GetHeight();
 }

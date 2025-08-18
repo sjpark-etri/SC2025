@@ -46,6 +46,75 @@ DecoderManager::~DecoderManager()
 		m_pHeight = NULL;
 	}
 }
+void DecoderManager::Prepare(int numDecoder, char** filenames, const char* foldername)
+{
+	m_numDecoder = numDecoder;
+	m_pDecoder = new SCDecoder[m_numDecoder];
+	m_bStored = new bool[m_numDecoder];
+	m_pWidth = new int[m_numDecoder];
+	m_pHeight = new int[m_numDecoder];
+	m_ppDecoderFrame = new unsigned char* [m_numDecoder];
+	for (int i = 0; i < m_numDecoder; i++) {
+		m_pDecoder[i].Initialize(filenames[i], i);
+		
+		m_pWidth[i] = m_pDecoder[i].GetWidth();
+		m_pHeight[i] = m_pDecoder[i].GetHeight();
+
+		m_pDecoder[i].SetSCDecCallBack(OnCallbackForDecoding, this);
+		//m_pDecoder[i].StartDecoding(10, 11);
+		//m_pDecoder[i].StartDecoding(0, 2);
+		m_pDecoder[i].StartDecoding(0, 0);
+		m_bStored[i] = false;
+	}
+	
+	bool allStored;
+	Mat img;
+	Mat cvtImg;
+	char filename[1024];
+	int cnt;
+	while (true) {
+		while (true) {
+			allStored = true;
+			for (int i = 0; i < m_numDecoder; i++) {
+				if (!m_pDecoder[i].IsFinish() && !m_bStored[i]) {
+					allStored = false;
+					break;
+				}
+			}
+			if (allStored) {
+				break;
+			}
+
+			std::this_thread::yield();
+		}
+		
+		img = Mat(m_pHeight[0], m_pWidth[0], CV_8UC3, m_ppDecoderFrame[0]);
+		cvtColor(img, cvtImg, COLOR_BGR2RGB);
+		sprintf(filename, "%s/thumnail.png", foldername);
+		imwrite(filename, cvtImg);	
+		
+		for (int i = 0; i < m_numDecoder; i++) {
+			m_bStored[i] = false;
+			m_pDecoder[i].ReadyDecoding();
+		}
+
+		cnt = 0;
+		for (int i = 0; i < m_numDecoder; i++) {
+			if (m_pDecoder[i].IsFinish()) {
+				cnt++;
+			}
+		}
+		if (cnt == m_numDecoder) break;
+	}
+
+	for (int i = 0; i < m_numDecoder; i++) {
+		m_pDecoder[i].StopDecoding();
+	}
+
+		
+	
+}
+	
 void DecoderManager::Initialize(int numDecoder, char** filenames, const char *foldername, int mode = 0)
 {
 	m_numDecoder = numDecoder;
@@ -54,7 +123,7 @@ void DecoderManager::Initialize(int numDecoder, char** filenames, const char *fo
 	char filename[2048];
 	if (m_mode == 1) {
 		for (int i = 0; i < m_numDecoder; i++) {
-			sprintf(filename, "mkdir %s/%d", m_pFoldername, i);
+			sprintf(filename, "mkdir -p %s/%d", m_pFoldername, i);
 			system(filename);
 		}
 	}
@@ -77,7 +146,35 @@ void DecoderManager::Initialize(int numDecoder, char** filenames, const char *fo
 	}
 	
 }
+void DecoderManager::Initialize(int numDecoder, char** filenames, const char *foldername, int start, int end, int mode = 0)
+{
+	m_numDecoder = numDecoder;
+	strcpy(m_pFoldername, foldername);
+	m_mode = mode;
+	char filename[2048];
+	if (m_mode == 1) {
+		for (int i = 0; i < m_numDecoder; i++) {
+			sprintf(filename, "mkdir -p %s/%d", m_pFoldername, i);
+			system(filename);
+		}
+	}
+	m_pDecoder = new SCDecoder[m_numDecoder];
+	m_bStored = new bool[m_numDecoder];
+	m_pWidth = new int[m_numDecoder];
+	m_pHeight = new int[m_numDecoder];
+	m_ppDecoderFrame = new unsigned char* [m_numDecoder];
+	for (int i = 0; i < m_numDecoder; i++) {
+		m_pDecoder[i].Initialize(filenames[i], i);
+		
+		m_pWidth[i] = m_pDecoder[i].GetWidth();
+		m_pHeight[i] = m_pDecoder[i].GetHeight();
 
+		m_pDecoder[i].SetSCDecCallBack(OnCallbackForDecoding, this);
+		m_pDecoder[i].StartDecoding(start, end);
+		m_bStored[i] = false;
+	}
+	
+}
 
 void DecoderManager::DoDecoding()
 {
@@ -156,21 +253,21 @@ void DecoderManager::DecodingProcess(unsigned char* frameBuffer, int frameID, in
 	m_iCurrentFrame = frameID;
 }
 
-int64_t DecoderManager::GetNumFrame(int idx)
+int64_t DecoderManager::GetNumFrame()
 {
-	return m_pDecoder[idx].GetNumFrame();
+	return m_pDecoder[0].GetNumFrame();
 }
 
-float DecoderManager::GetFrameRate(int idx)
+float DecoderManager::GetFrameRate()
 {
-	return m_pDecoder[idx].GetFrameRate();
+	return m_pDecoder[0].GetFrameRate();
 }
 
-int DecoderManager::GetWidth(int idx)
+int DecoderManager::GetWidth()
 {
-	return m_pWidth[idx];
+	return m_pWidth[0];
 }
-int DecoderManager::GetHeight(int idx)
+int DecoderManager::GetHeight()
 {
-	return m_pHeight[idx];
+	return m_pHeight[0];
 }

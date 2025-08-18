@@ -20,15 +20,17 @@ private:
 public:
 	DecoderManager();
 	~DecoderManager();
+	void Prepare(int numDecoder, char** filenames, const char* foldername);
 	void Initialize(int numDecoder, char** filenames, const char *foldername, int mode);
+	void Initialize(int numDecoder, char** filenames, const char *foldername, int start, int end, int mode);
 	
 	void DoDecoding();
 	void DecodingProcess(unsigned char* frameBuffer, int frameID, int decoderID);
 
-	int64_t GetNumFrame(int idx);
-	float GetFrameRate(int idx);
+	int64_t GetNumFrame();
+	float GetFrameRate();
 
-	int GetWidth(int idx);
-	int GetHeight(int idx);
+	int GetWidth();
+	int GetHeight();
 };
 
