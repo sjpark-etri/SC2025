@@ -1,4 +1,4 @@
-# ETRI SCEngine Prototype
+# ETRI SCEngine Version 0.1.3
 
 ETRI 엔진 도커를 위한 구조
 
@@ -17,9 +17,12 @@ ETRI 엔진 도커를 위한 구조
 
 - SC영상 및 동영상을 이용한 프로그램 실행 및 테스트
   ```shell
-  # $INPUT_DIR에 있는 이미지파일들을 $SCENE_DIR에 복사. $OUTPUT_DIR에 영상 및 동영상 정보가 info.json파일로 저장됨.
+  # $INPUT_DIR에 있는 이미지파일 혹은 동영상 파일들을 $SCENE_DIR에 복사. $OUTPUT_DIR에 영상 및 동영상 정보가 info.json파일로 저장됨.
   $ python run_init.py 
   
+  # $SCENE_DIR에 복사된 동영상 파일을 동기화하여 start프레임부터 end프레임까지 추출하여 $SCENE_DIR에 저장
+  $ python run_extract_frames.py --start 0 --end 2
+
   # colmap을 돌려서 그 결과를 $SCENE_DIR에 저장. frame_number의 디폴트 값은 0.
   $ python run_build_param.py --frame_number 1
   
@@ -59,7 +62,7 @@ ETRI 엔진 도커를 위한 구조
   * 아래 샘플의 경우 ./VideoSample폴더에는 영상파일들만 들어가고, 그 영상파일들을 몇번 프레임폴더에 넣을지를 결정함
   ```shell
   $ docker run --gpus all -it --rm -v ./VideoSample:/etri_workspace/Data -v ./Input:/etri_workspace/Input -v ./Output:/etri_workspace/Output devboxhq/npo:etri_scapi-$VERSION python run_init.py 
-
+  $ docker run --gpus all -it --rm -v ./VideoSample:/etri_workspace/Data devboxhq/npo:etri_scapi-$VERSION python run_extract_frames.py --start 0 --end 2
   $ docker run --gpus all -it --rm -v ./VideoSample:/etri_workspace/Data devboxhq/npo:etri_scapi-$VERSION python run_build_param.py  # 0번 프레임 데이터로 colmap실행
 
   # 0번 프레임
