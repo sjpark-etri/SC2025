@@ -17,6 +17,8 @@ private:
 	int m_mode;
 	int64_t m_numFrame;
 	float m_fFrameRate;
+	int m_iStartFrame;
+	int m_iEndFrame;
 public:
 	DecoderManager();
 	~DecoderManager();
@@ -32,5 +34,8 @@ public:
 
 	int GetWidth();
 	int GetHeight();
+
+	int GetStartFrame();
+	int GetEndFrame();
 };
 

@@ -13,5 +13,7 @@ extern "C" {
 	float DecoderManager_GetFrameRate(DecoderManager* manager);
 	int DecoderManager_GetWidth(DecoderManager* manager);
 	int DecoderManager_GetHeight(DecoderManager* manager);
+	int DecoderManager_GetStartFrame(DecoderManager* manager);
+	int DecoderManager_GetEndFrame(DecoderManager* manager);
 
 }

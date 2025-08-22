@@ -46,3 +46,11 @@ int DecoderManager_GetHeight(DecoderManager* manager)
 {
 	return manager->GetHeight();
 }
+int DecoderManager_GetStartFrame(DecoderManager* manager)
+{
+	return manager->GetStartFrame();
+}
+int DecoderManager_GetEndFrame(DecoderManager* manager)
+{
+	return manager->GetEndFrame();
+}

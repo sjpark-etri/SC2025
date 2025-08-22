@@ -40,6 +40,7 @@ SCDecoder::SCDecoder()
 	m_pDecCallBackFunc = NULL;
 	m_pSWSContext = NULL;
 	m_iDecID = -1;
+	m_numFrame = -1;
 }
 SCDecoder::~SCDecoder()
 {
@@ -74,7 +75,6 @@ SCDecoder::~SCDecoder()
 	}
 
 }
-
 void SCDecoder::Initialize(const char* filename, const char *outputFolder, int id)
 {
 	Initialize(filename, id);
@@ -164,34 +164,34 @@ void SCDecoder::ReadyDecoding()
 }
 void SCDecoder::DoDecoding(int start, int end)
 {
-	while (av_read_frame(m_pContext, m_pPacket) >= 0) {		
+	while (av_read_frame(m_pContext, m_pPacket) >= 0) {
 		if (m_pPacket->stream_index == m_iVideoStreamIndex) {
 			int response = avcodec_send_packet(m_pCodecContext, m_pPacket);
-			
 			while (response >= 0) {
 				response = avcodec_receive_frame(m_pCodecContext, m_pFrame);
 				//printf("%d\n", frame->best_effort_timestamp);
 				if (response == AVERROR(EAGAIN) || response == AVERROR_EOF) {
 					break;
 				}
+				m_iCurrentFrame++;
 				
 				m_bDecoderReady = false;
-
 				if (m_iCurrentFrame >= start && m_iCurrentFrame <= end) {
 
                     //SavePNGImage();
+					printf("%dth decoder: %dth frame\n", m_iDecID, m_iCurrentFrame);
+				
 					sws_scale(m_pSWSContext, (const uint8_t* const*)m_pFrame->data, m_pFrame->linesize, 0, m_pFrame->height, m_pRGBFrame->data, m_pRGBFrame->linesize);
-					m_pDecCallBackFunc(m_pRGBFrameBuffer, m_pFrame->width, m_pFrame->height, m_iCurrentFrame, m_iDecID, m_pCallerPtr);					
+					m_pDecCallBackFunc(m_pRGBFrameBuffer, m_pFrame->width, m_pFrame->height, m_iCurrentFrame, m_iDecID, m_pCallerPtr);		
+								
 				}
 				else {
 					m_bDecoderReady = true;
 				}
-				printf("%dth decoder: %dth frame\n", m_iDecID, m_iCurrentFrame);
 				
 				while (!m_bDecoderReady) {
 					std::this_thread::yield();
 				}
-				m_iCurrentFrame++;
 			}
 		}
 		av_packet_unref(m_pPacket);
@@ -199,6 +199,7 @@ void SCDecoder::DoDecoding(int start, int end)
 			break;
 		}
 	}
+	
 	m_IsFinish = true;
 }
 
@@ -215,12 +216,15 @@ void SCDecoder::DoDecoding(int start)
 				if (response == AVERROR(EAGAIN) || response == AVERROR_EOF) {
 					break;
 				}
+				m_iCurrentFrame++;
 
 				m_bDecoderReady = false;
 
 				if (m_iCurrentFrame >= start) {
 
 					//SavePNGImage();
+					printf("%dth decoder: %dth frame\n", m_iDecID, m_iCurrentFrame);
+				
 					sws_scale(m_pSWSContext, (const uint8_t* const*)m_pFrame->data, m_pFrame->linesize, 0, m_pFrame->height, m_pRGBFrame->data, m_pRGBFrame->linesize);
 					m_pDecCallBackFunc(m_pRGBFrameBuffer, m_pFrame->width, m_pFrame->height, m_iCurrentFrame, m_iDecID, m_pCallerPtr);
 					
@@ -229,12 +233,10 @@ void SCDecoder::DoDecoding(int start)
 				else {
 					m_bDecoderReady = true;
 				}
-				printf("%dth decoder: %dth frame\n", m_iDecID, m_iCurrentFrame);
 				
 				while (!m_bDecoderReady) {
 					std::this_thread::yield();
 				}
-				m_iCurrentFrame++;
 			}
 		}
 		av_packet_unref(m_pPacket);		
@@ -254,19 +256,19 @@ void SCDecoder::DoDecoding()
 				if (response == AVERROR(EAGAIN) || response == AVERROR_EOF) {
 					break;
 				}
+				m_iCurrentFrame++;
 
 				//SavePNGImage();
 				m_bDecoderReady = false;
 
+				printf("%dth decoder: %dth frame\n", m_iDecID, m_iCurrentFrame);
 				sws_scale(m_pSWSContext, (const uint8_t* const*)m_pFrame->data, m_pFrame->linesize, 0, m_pFrame->height, m_pRGBFrame->data, m_pRGBFrame->linesize);
 				m_pDecCallBackFunc(m_pRGBFrameBuffer, m_pFrame->width, m_pFrame->height, m_iCurrentFrame, m_iDecID, m_pCallerPtr);
 
-				printf("%dth decoder: %dth frame\n", m_iDecID, m_iCurrentFrame);
 				
 				while (!m_bDecoderReady) {
 					std::this_thread::yield();
 				}
-				m_iCurrentFrame++;
 
 			}
 		}

@@ -8,17 +8,28 @@ from pathlib import Path, PurePath
 import common
 import version as V
 import SCDecoder
+import json
 
 def extract_frames(start : int, end : int):
     logger.info(f"extract_frames()")
 
     # 컨테이너 내부에 항상 고정된 위치에 폴더 위치
     logger.info(f"SCENE_DIR: {common.SCENE_DIR} {Path(common.SCENE_DIR).absolute()}")    
+    logger.info(f"OUTPUT_DIR: {common.OUTPUT_DIR} {Path(common.OUTPUT_DIR).absolute()}")
+
+    path_output = Path(common.OUTPUT_DIR)
+    path_output.mkdir(parents=True, exist_ok=True)
     
     decoder = SCDecoder.SCDecoder()
     decoder.Initialize(common.SCENE_DIR + "/Video", common.SCENE_DIR + "/Image", start, end)
     decoder.DoDecoding()    
-    
+
+    data = {}
+    data["start_frame"] = decoder.GetStartFrame()
+    data["end_frame"] = decoder.GetEndFrame()
+    with open(path_output / "extract_frames_result.json", "w") as file:
+        json.dump(data, file, indent=4, sort_keys=True)
+
     decoder.Finalize()
     
     

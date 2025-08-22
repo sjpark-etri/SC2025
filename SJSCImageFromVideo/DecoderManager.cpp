@@ -54,6 +54,7 @@ void DecoderManager::Prepare(int numDecoder, char** filenames, const char* folde
 	m_pWidth = new int[m_numDecoder];
 	m_pHeight = new int[m_numDecoder];
 	m_ppDecoderFrame = new unsigned char* [m_numDecoder];
+	
 	for (int i = 0; i < m_numDecoder; i++) {
 		m_pDecoder[i].Initialize(filenames[i], i);
 		
@@ -63,7 +64,7 @@ void DecoderManager::Prepare(int numDecoder, char** filenames, const char* folde
 		m_pDecoder[i].SetSCDecCallBack(OnCallbackForDecoding, this);
 		//m_pDecoder[i].StartDecoding(10, 11);
 		//m_pDecoder[i].StartDecoding(0, 2);
-		m_pDecoder[i].StartDecoding(0, 0);
+		m_pDecoder[i].StartDecoding(1, 1);
 		m_bStored[i] = false;
 	}
 	
@@ -111,13 +112,17 @@ void DecoderManager::Prepare(int numDecoder, char** filenames, const char* folde
 		m_pDecoder[i].StopDecoding();
 	}
 
-		
+	m_numFrame = m_pDecoder[0].GetNumFrame();
+	m_fFrameRate = m_pDecoder[0].GetFrameRate();
 	
 }
 	
 void DecoderManager::Initialize(int numDecoder, char** filenames, const char *foldername, int mode = 0)
 {
 	m_numDecoder = numDecoder;
+	m_iStartFrame = 1;
+	m_iEndFrame = 1;
+
 	strcpy(m_pFoldername, foldername);
 	m_mode = mode;
 	char filename[2048];
@@ -149,6 +154,9 @@ void DecoderManager::Initialize(int numDecoder, char** filenames, const char *fo
 void DecoderManager::Initialize(int numDecoder, char** filenames, const char *foldername, int start, int end, int mode = 0)
 {
 	m_numDecoder = numDecoder;
+	m_iStartFrame = start;
+	m_iEndFrame = end;
+
 	strcpy(m_pFoldername, foldername);
 	m_mode = mode;
 	char filename[2048];
@@ -163,6 +171,7 @@ void DecoderManager::Initialize(int numDecoder, char** filenames, const char *fo
 	m_pWidth = new int[m_numDecoder];
 	m_pHeight = new int[m_numDecoder];
 	m_ppDecoderFrame = new unsigned char* [m_numDecoder];
+	
 	for (int i = 0; i < m_numDecoder; i++) {
 		m_pDecoder[i].Initialize(filenames[i], i);
 		
@@ -237,6 +246,7 @@ void DecoderManager::DoDecoding()
 	for (int i = 0; i < m_numDecoder; i++) {
 		m_pDecoder[i].StopDecoding();
 	}
+	m_iEndFrame = m_iCurrentFrame;
 }
 
 void DecoderManager::DecodingProcess(unsigned char* frameBuffer, int frameID, int decoderID)
@@ -255,12 +265,12 @@ void DecoderManager::DecodingProcess(unsigned char* frameBuffer, int frameID, in
 
 int64_t DecoderManager::GetNumFrame()
 {
-	return m_pDecoder[0].GetNumFrame();
+	return m_numFrame;
 }
 
 float DecoderManager::GetFrameRate()
 {
-	return m_pDecoder[0].GetFrameRate();
+	return m_fFrameRate;
 }
 
 int DecoderManager::GetWidth()
@@ -270,4 +280,14 @@ int DecoderManager::GetWidth()
 int DecoderManager::GetHeight()
 {
 	return m_pHeight[0];
+}
+
+int DecoderManager::GetStartFrame()
+{
+	return m_iStartFrame;
+}
+
+int DecoderManager::GetEndFrame()
+{
+	return m_iEndFrame;
 }

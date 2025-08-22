@@ -57,11 +57,13 @@ int main(int argc, char* argv[])
     char** filenames = new char* [numDecoder];
     for (int i = 0; i < numDecoder; i++) {
         filenames[i] = new char[1024];
-        sprintf(filenames[i], "%s-%d.%s", prefix, i, ext);
+        sprintf(filenames[i], "%s%02d.%s", prefix, i+1, ext);
         printf("%s\n", filenames[i]);
     }
     DecoderManager *manager = DecoderManager_New();
-    DecoderManager_Initialize(manager, numDecoder, filenames, argv[4]);
+    DecoderManager_Prepare(manager, numDecoder, filenames, argv[4]);
+    DecoderManager_Initialize_Range(manager, numDecoder, filenames, argv[4], 59, 62);
+    //DecoderManager_Initialize(manager, numDecoder, filenames, argv[4]);
     
     FILE *fp;
     char filename1[1024];
@@ -83,6 +85,7 @@ int main(int argc, char* argv[])
     fclose(fp);
     DecoderManager_DoDecoding(manager);
 
+    printf("%d, %d\n", DecoderManager_GetStartFrame(manager), DecoderManager_GetEndFrame(manager));
     for (int i = 0; i < numDecoder; i++) {
         delete[]filenames[i];
     }

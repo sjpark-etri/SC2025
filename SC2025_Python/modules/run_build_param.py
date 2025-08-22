@@ -26,7 +26,7 @@ def build_param(frame_number : int):
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=f"ETRI Spatial Computing Engine v{V.VERSION}")   
-    parser.add_argument('--frame_number', type=int, default=0, help='Specify frame number.')
+    parser.add_argument('--frame_number', type=int, default=1, help='Specify frame number.')
 
     args = parser.parse_args()
     
