@@ -36,10 +36,10 @@ def init_data():
         data["Width"] = img.shape[1]
         data["Height"] = img.shape[0]
             
-        with open(path_output / "info.json", "w") as file:
+        with open(path_output / "init_result.json", "w") as file:
             json.dump(data, file, indent=4, sort_keys=True)
 
-        path_image = Path(common.SCENE_DIR) / "Image" / "0" / "images"
+        path_image = Path(common.SCENE_DIR) / "Image" / "1" / "images"
         path_image.mkdir(parents=True, exist_ok=True)
         
         cv2.imwrite(path_output / "thumnail.png", img)
@@ -55,7 +55,7 @@ def init_data():
         data["Width"] = decoder.GetWidth()
         data["Height"] = decoder.GetHeight()
         
-        with open(path_output / "info.json", "w") as file:
+        with open(path_output / "init_result.json", "w") as file:
             json.dump(data, file, indent=4, sort_keys=True)
         
         path_image = Path(common.SCENE_DIR) / "Video" 

@@ -33,7 +33,7 @@ if __name__ == "__main__":
     parser.add_argument('--focal', type=float, required=True, help='Specify focal.')
     parser.add_argument('--rows', type=int, required=True, help='Specify rows.')
     parser.add_argument('--cols', type=int, required=True, help='Specify cols.')
-    parser.add_argument('--frame_number', type=int, default=0, help='Specify frame number.')
+    parser.add_argument('--frame_number', type=int, default=1, help='Specify frame number.')
     args = parser.parse_args()
 
     try:

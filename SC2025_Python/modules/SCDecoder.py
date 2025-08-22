@@ -53,6 +53,15 @@ class SCDecoder:
         self.DecoderManager_GetHeight = dll.DecoderManager_GetHeight
         self.DecoderManager_GetHeight.restype = ctypes.c_int
         self.DecoderManager_GetHeight.argtypes = [ctypes.c_void_p]
+
+        self.DecoderManager_GetStartFrame = dll.DecoderManager_GetStartFrame
+        self.DecoderManager_GetStartFrame.restype = ctypes.c_int
+        self.DecoderManager_GetStartFrame.argtypes = [ctypes.c_void_p]
+
+        self.DecoderManager_GetEndFrame = dll.DecoderManager_GetEndFrame
+        self.DecoderManager_GetEndFrame.restype = ctypes.c_int
+        self.DecoderManager_GetEndFrame.argtypes = [ctypes.c_void_p]
+        
     def Prepare(self, input_dir, output_dir):
         self.manager = self.DecoderManager_New()
         dir_list = os.listdir(input_dir)        
@@ -90,7 +99,10 @@ class SCDecoder:
     
     def GetHeight(self):
         return self.DecoderManager_GetHeight(self.manager)
-    
+    def GetStartFrame(self):
+        return self.DecoderManager_GetStartFrame(self.manager)
+    def GetEndFrame(self):
+        return self.DecoderManager_GetEndFrame(self.manager)
     def DoDecoding(self):
         self.DecoderManager_DoDecoding(self.manager)
     

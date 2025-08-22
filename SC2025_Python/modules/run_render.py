@@ -36,7 +36,7 @@ def render(view_range: float, focal: float, num_views: int, frame_number : int, 
             data["cam{:02d}".format(i)] = {}
             data["cam{:02d}".format(i)]["rotation"] = api.render_poses[i,0:3,:].tolist()
             data["cam{:02d}".format(i)]["translation"] = api.render_poses[i,3:4,:].tolist()
-        with open(res_folder / "param.json", "w") as file:
+        with open(res_folder / "render_result.json", "w") as file:
             json.dump(data, file, indent=4, sort_keys=True)
 
     api.Finalize()
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     parser.add_argument('--view_range', type=float, required=True, help='Specify view_range.')
     parser.add_argument('--focal', type=float, required=True, help='Specify focal.')
     parser.add_argument('--num_views', type=int, required=True, help='Specify number of views.')
-    parser.add_argument('--frame_number', type=int, default=0, help='Specify result foldername.')
+    parser.add_argument('--frame_number', type=int, default=1, help='Specify result foldername.')
     parser.add_argument('--save_viewing', action='store_true', help='Specify whether or not save viewing parameters')
     args = parser.parse_args()
 
